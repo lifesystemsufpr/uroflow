@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Screen } from '../../../shared/ui/Screen';
 import { useChildStore, ChildSelector } from '../../child';
+import { useAppointmentStore } from '../../consultations/store/consultationsStore';
 import { HomeSummary } from '../components/HomeSummary';
 import { RecentEvents } from '../components/RecentEvents';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,37 +17,71 @@ export function HomeScreen() {
   const [selectorVisible, setSelectorVisible] = useState(false);
   const navigation = useNavigation<any>();
 
+  const appointments = useAppointmentStore((state) => state.appointments);
+
+  const nextAppointment = useMemo(() => {
+    if (!activeChildId) return null;
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    
+    const tomorrowAppointments = appointments.filter(
+      (a) => a.childId === activeChildId && a.date === tomorrowStr
+    );
+    
+    if (tomorrowAppointments.length === 0) return null;
+    
+    tomorrowAppointments.sort((a, b) => a.time.localeCompare(b.time));
+    return tomorrowAppointments[0];
+  }, [appointments, activeChildId]);
+
   return (
     <Screen>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.childSelector} onPress={() => setSelectorVisible(true)}>
-          <Text style={styles.avatar}>{activeChild?.avatar || '👦'}</Text>
-          <Text style={styles.childName}>{activeChild?.name || 'Selecione'} ▼</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.content}>
-        <Text style={styles.greeting}>Olá! 👋</Text>
-        <Text style={styles.question}>Como foi o dia do {activeChild?.name || ''}?</Text>
-        
-        {/* Placeholder for HomeSummary */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Hoje</Text>
-          <HomeSummary />
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.childSelector} onPress={() => setSelectorVisible(true)}>
+            <Text style={styles.avatar}>{activeChild?.avatar || '👦'}</Text>
+            <Text style={styles.childName}>{activeChild?.name || 'Selecione'} ▼</Text>
+          </TouchableOpacity>
         </View>
 
-        <Text style={styles.sectionTitle}>O que aconteceu?</Text>
-        <View style={styles.actionGrid}>
-          <ActionButton type="water" icon="water" label="Líquidos" color={colors.water} bgColor={colors.waterBackground} onPress={() => navigation.navigate('Wizard', { type: 'water' })} />
-          <ActionButton type="pee" icon="body" label="Xixi" color={colors.pee} bgColor={colors.peeBackground} onPress={() => navigation.navigate('Wizard', { type: 'pee' })} />
-          <ActionButton type="poop" icon="sad" label="Cocô" color={colors.poop} bgColor={colors.poopBackground} onPress={() => navigation.navigate('Wizard', { type: 'poop' })} />
-          <ActionButton type="night" icon="moon" label="Noite" color={colors.night} bgColor={colors.nightBackground} onPress={() => navigation.navigate('Wizard', { type: 'night' })} />
-          <ActionButton type="escape" icon="warning" label="Escape" color={colors.escape} bgColor={colors.escapeBackground} onPress={() => navigation.navigate('Wizard', { type: 'escape' })} />
-          <ActionButton type="pain" icon="medkit" label="Desconforto" color={colors.pain} bgColor={colors.painBackground} onPress={() => navigation.navigate('Wizard', { type: 'pain' })} />
+        <View style={styles.content}>
+          <Text style={styles.greeting}>Olá! 👋</Text>
+          <Text style={styles.question}>Como foi o dia de {activeChild?.name || ''}?</Text>
+          
+          {nextAppointment && (
+            <TouchableOpacity 
+              style={styles.consultationAlert} 
+              onPress={() => navigation.navigate('Consultations')}
+            >
+              <View style={styles.consultationContent}>
+                <Text style={styles.consultationTitle}>CONSULTA AMANHÃ</Text>
+                <Text style={styles.consultationText}>
+                  {nextAppointment.specialty} às {nextAppointment.time}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.primaryDark} />
+            </TouchableOpacity>
+          )}
+
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Hoje</Text>
+            <HomeSummary />
+          </View>
+
+          <Text style={styles.sectionTitle}>O que aconteceu?</Text>
+          <View style={styles.actionGrid}>
+            <ActionButton type="water" icon="💧" label="Líquidos" bgColor={colors.waterBackground} onPress={() => navigation.navigate('Wizard', { type: 'water' })} />
+            <ActionButton type="pee" icon="〰️" label="Xixi" bgColor={colors.peeBackground} onPress={() => navigation.navigate('Wizard', { type: 'pee' })} />
+            <ActionButton type="poop" icon="💩" label="Cocô" bgColor={colors.poopBackground} onPress={() => navigation.navigate('Wizard', { type: 'poop' })} />
+            <ActionButton type="night" icon="🌙" label="Noite" bgColor={colors.nightBackground} onPress={() => navigation.navigate('Wizard', { type: 'night' })} />
+            <ActionButton type="escape" icon="⚠️" label="Escape" bgColor={colors.escapeBackground} onPress={() => navigation.navigate('Wizard', { type: 'escape' })} />
+            <ActionButton type="pain" icon="😣" label="Desconforto" bgColor={colors.painBackground} onPress={() => navigation.navigate('Wizard', { type: 'pain' })} />
+          </View>
+          
+          <RecentEvents />
         </View>
-        
-        <RecentEvents />
-      </View>
+      </ScrollView>
 
       <ChildSelector 
         visible={selectorVisible} 
@@ -57,92 +92,131 @@ export function HomeScreen() {
   );
 }
 
-function ActionButton({ icon, label, color, bgColor, onPress }: { type: ActionType, icon: any, label: string, color: string, bgColor: string, onPress: () => void }) {
+function ActionButton({ icon, label, bgColor, onPress }: { type: ActionType, icon: string, label: string, bgColor: string, onPress: () => void }) {
   return (
-    <TouchableOpacity style={[styles.actionBtn, { backgroundColor: bgColor }]} onPress={onPress}>
-      <Ionicons name={icon} size={28} color={color} />
-      <Text style={[styles.actionLabel, { color }]}>{label}</Text>
+    <TouchableOpacity style={styles.actionBtn} onPress={onPress}>
+      <View style={[styles.iconContainer, { backgroundColor: bgColor }]}>
+        <Text style={{ fontSize: 20 }}>{icon}</Text>
+      </View>
+      <Text style={styles.actionLabel}>{label}</Text>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContent: {
+    paddingBottom: 40,
+  },
   header: {
     padding: metrics.paddingLg,
-    paddingTop: metrics.paddingSm,
+    paddingTop: 32,
     flexDirection: 'row',
   },
   childSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    paddingHorizontal: metrics.paddingMd,
     paddingVertical: metrics.paddingSm,
-    borderRadius: metrics.radiusXl,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   avatar: {
-    fontSize: 20,
-    marginRight: metrics.paddingSm,
+    fontSize: 24,
+    marginRight: 8,
   },
   childName: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: 'bold',
     color: colors.primaryDark,
   },
   content: {
     paddingHorizontal: metrics.paddingLg,
   },
   greeting: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: colors.textDark,
   },
   question: {
     fontSize: 16,
     color: colors.textSecondary,
-    marginBottom: metrics.paddingLg,
+    marginBottom: 24,
+  },
+  consultationAlert: {
+    backgroundColor: colors.primaryLight,
+    padding: metrics.paddingLg,
+    borderRadius: metrics.radiusMd,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  consultationContent: {
+    flex: 1,
+  },
+  consultationTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: colors.primaryDark,
+    marginBottom: 4,
+  },
+  consultationText: {
+    fontSize: 16,
+    color: colors.primaryDark,
   },
   card: {
-    backgroundColor: colors.surface,
-    padding: metrics.paddingMd,
-    borderRadius: metrics.radiusMd,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: metrics.paddingLg,
+    backgroundColor: '#FFFFFF',
+    padding: metrics.paddingLg,
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 3,
+    marginBottom: 32,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: colors.textDark,
-    marginBottom: metrics.paddingSm,
+    marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: colors.textDark,
-    marginBottom: metrics.paddingSm,
+    marginBottom: 16,
   },
   actionGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
     justifyContent: 'space-between',
-    paddingBottom: 40,
+    gap: 16,
+    marginBottom: 32,
   },
   actionBtn: {
-    width: '30%',
-    aspectRatio: 1,
-    borderRadius: metrics.radiusMd,
+    width: '47%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    padding: 12,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: metrics.paddingSm,
+    marginRight: 12,
   },
   actionLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: 'bold',
-    marginTop: 8,
-    textAlign: 'center',
+    color: colors.textDark,
   }
 });

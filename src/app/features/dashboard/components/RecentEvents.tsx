@@ -1,12 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { useEventStore } from '../../../entities/event/model/store';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useEventStore, DiaryEvent } from '../../diary';
 import { colors, metrics } from '../../../shared/theme/colors';
 import { Ionicons } from '@expo/vector-icons';
-import { DiaryEvent } from '../../../entities/event/model/types';
+import { useNavigation } from '@react-navigation/native';
 
 export function RecentEvents() {
   const { events } = useEventStore();
+  const navigation = useNavigation<any>();
   
   // Pegar os 3 últimos eventos
   const recentEvents = events.slice(0, 3);
@@ -21,28 +22,32 @@ export function RecentEvents() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Últimos Registros</Text>
-      {recentEvents.map((evt, index) => (
-        <EventItem key={evt.id} event={evt} isLast={index === recentEvents.length - 1} />
-      ))}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.title}>Últimos Registros</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Diary')}>
+          <Text style={styles.seeAllText}>Ver diário</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.listContainer}>
+        {recentEvents.map((evt) => (
+          <EventItem key={evt.id} event={evt} />
+        ))}
+      </View>
     </View>
   );
 }
 
-function EventItem({ event, isLast }: { event: DiaryEvent, isLast: boolean }) {
+function EventItem({ event }: { event: DiaryEvent }) {
   const config = getEventConfig(event.type);
   
   return (
-    <View style={styles.item}>
+    <View style={styles.card}>
       <Text style={styles.time}>{event.time}</Text>
-      <View style={styles.timeline}>
-        <View style={[styles.dot, { backgroundColor: config.color }]} />
-        {!isLast && <View style={styles.line} />}
+      <View style={[styles.iconWrapper, { backgroundColor: config.bgColor }]}>
+        <Text style={{ fontSize: 16 }}>{config.icon}</Text>
       </View>
-      <View style={styles.card}>
-        <View style={styles.header}>
-          <Text style={styles.cardTitle}>{config.title}</Text>
-        </View>
+      <View style={styles.itemContent}>
+        <Text style={styles.cardTitle}>{config.title}</Text>
         <Text style={styles.summary}>{getEventSummary(event)}</Text>
       </View>
     </View>
@@ -51,13 +56,13 @@ function EventItem({ event, isLast }: { event: DiaryEvent, isLast: boolean }) {
 
 function getEventConfig(type: string) {
   switch (type) {
-    case 'pee': return { title: 'Xixi', color: colors.pee };
-    case 'water': return { title: 'Líquido', color: colors.water };
-    case 'poop': return { title: 'Evacuação', color: colors.poop };
-    case 'night': return { title: 'Noite', color: colors.night };
-    case 'escape': return { title: 'Escape', color: colors.escape };
-    case 'pain': return { title: 'Desconforto', color: colors.pain };
-    default: return { title: 'Registro', color: colors.primary };
+    case 'pee': return { title: 'Xixi', color: colors.pee, bgColor: colors.peeBackground, icon: '〰️' };
+    case 'water': return { title: 'Líquido', color: colors.water, bgColor: colors.waterBackground, icon: '💧' };
+    case 'poop': return { title: 'Evacuação', color: colors.poop, bgColor: colors.poopBackground, icon: '💩' };
+    case 'night': return { title: 'Noite', color: colors.night, bgColor: colors.nightBackground, icon: '🌙' };
+    case 'escape': return { title: 'Escape', color: colors.escape, bgColor: colors.escapeBackground, icon: '⚠️' };
+    case 'pain': return { title: 'Desconforto', color: colors.pain, bgColor: colors.painBackground, icon: '😣' };
+    default: return { title: 'Registro', color: colors.primary, bgColor: '#E8EAF6', icon: '📝' };
   }
 }
 
@@ -66,18 +71,28 @@ function getEventSummary(event: DiaryEvent) {
   const parts = [];
   if (event.data.q1) parts.push(event.data.q1);
   if (event.data.q2) parts.push(event.data.q2);
-  return parts.join(' • ');
+  return parts.join(', ');
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: metrics.paddingLg,
+    marginTop: 8,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: colors.textDark,
-    marginBottom: metrics.paddingMd,
+  },
+  seeAllText: {
+    fontSize: 14,
+    color: colors.primary,
+    fontWeight: 'bold',
   },
   empty: {
     padding: metrics.paddingLg,
@@ -86,55 +101,45 @@ const styles = StyleSheet.create({
   emptyText: {
     color: colors.textLight,
   },
-  item: {
-    flexDirection: 'row',
-    marginBottom: 0,
-  },
-  time: {
-    width: 45,
-    fontSize: 14,
-    color: colors.textSecondary,
-    fontWeight: 'bold',
-    marginTop: 12,
-  },
-  timeline: {
-    width: 24,
-    alignItems: 'center',
-    marginHorizontal: 8,
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginTop: 14,
-  },
-  line: {
-    width: 2,
-    flex: 1,
-    backgroundColor: colors.border,
-    marginTop: 4,
+  listContainer: {
+    gap: 12,
   },
   card: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    padding: metrics.paddingMd,
-    borderRadius: metrics.radiusMd,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: metrics.paddingMd,
-  },
-  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  time: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    width: 45,
+  },
+  iconWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  itemContent: {
+    flex: 1,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: colors.textDark,
+    marginBottom: 2,
   },
   summary: {
-    fontSize: 14,
+    fontSize: 12,
     color: colors.textSecondary,
   }
 });

@@ -8,6 +8,7 @@ export type DiaryEvent = {
   time: string; // HH:mm
   createdAt: string; // ISO datetime
   data: Record<string, string>;
+  notes?: string;
 };
 
 export type CreateEventInput = Omit<DiaryEvent, 'id' | 'createdAt'>;

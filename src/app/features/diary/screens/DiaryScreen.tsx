@@ -1,35 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { useChildStore } from '../../child';
+import { useChildStore, ChildSelector } from '../../child';
 import { useEventStore } from '../store/eventStore';
 import { colors, metrics } from '../../../shared/theme/colors';
 import { DiaryEvent } from '../types';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '../../../shared/ui/Screen';
+import { useRoute } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type FilterType = 'all' | 'pee' | 'water' | 'poop' | 'night' | 'escape' | 'pain';
 
 export function DiaryScreen() {
+  const route = useRoute<any>();
+  const insets = useSafeAreaInsets();
   const { children, activeChildId } = useChildStore();
   const activeChild = children.find(c => c.id === activeChildId);
   const { events } = useEventStore();
   
-  const [filter, setFilter] = useState<FilterType>('all');
+  const [filter, setFilter] = useState<FilterType>(route.params?.filter || 'all');
+  const [selectorVisible, setSelectorVisible] = useState(false);
+  
+  useEffect(() => {
+    if (route.params?.filter) {
+      setFilter(route.params.filter);
+    }
+  }, [route.params?.filter]);
   
   const filteredEvents = filter === 'all' 
     ? events 
     : events.filter(e => e.type === filter);
 
   return (
-    <Screen>
-      <View style={styles.header}>
-        <View style={styles.childSelector}>
-          <Text style={styles.avatar}>{activeChild?.avatar || '👦'}</Text>
+    <Screen style={{ backgroundColor: colors.background }}>
+      <View style={[styles.topBar, { paddingTop: Math.max(insets.top, 16) }]}>
+        <TouchableOpacity style={styles.childSelector} onPress={() => setSelectorVisible(true)}>
+          <View style={styles.avatarWrapper}>
+            <Text style={styles.avatarText}>{activeChild?.avatar || '👦'}</Text>
+          </View>
           <Text style={styles.childName}>{activeChild?.name || 'Selecione'} ▼</Text>
-        </View>
-        <TouchableOpacity style={styles.dateSelector}>
-          <Ionicons name="calendar-outline" size={20} color={colors.textDark} />
-          <Text style={styles.dateText}>Hoje</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.dateBar}>
+        <TouchableOpacity>
+          <Ionicons name="chevron-back" size={20} color={colors.water} />
+        </TouchableOpacity>
+        <Text style={styles.dateText}>Hoje</Text>
+        <TouchableOpacity>
+          <Ionicons name="chevron-forward" size={20} color={colors.water} />
         </TouchableOpacity>
       </View>
 
@@ -37,11 +56,9 @@ export function DiaryScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
           <FilterChip label="Todos" isActive={filter === 'all'} onPress={() => setFilter('all')} />
           <FilterChip label="Xixi" isActive={filter === 'pee'} onPress={() => setFilter('pee')} />
-          <FilterChip label="Água" isActive={filter === 'water'} onPress={() => setFilter('water')} />
+          <FilterChip label="Líquido" isActive={filter === 'water'} onPress={() => setFilter('water')} />
           <FilterChip label="Cocô" isActive={filter === 'poop'} onPress={() => setFilter('poop')} />
           <FilterChip label="Escape" isActive={filter === 'escape'} onPress={() => setFilter('escape')} />
-          <FilterChip label="Noite" isActive={filter === 'night'} onPress={() => setFilter('night')} />
-          <FilterChip label="Dor" isActive={filter === 'pain'} onPress={() => setFilter('pain')} />
         </ScrollView>
       </View>
 
@@ -57,6 +74,12 @@ export function DiaryScreen() {
           ))
         )}
       </ScrollView>
+
+      <ChildSelector 
+        visible={selectorVisible} 
+        onClose={() => setSelectorVisible(false)} 
+        onAddChild={() => console.log('Navigate to add child')} 
+      />
     </Screen>
   );
 }
@@ -78,20 +101,23 @@ function TimelineItem({ event, isLast }: { event: DiaryEvent, isLast: boolean })
   return (
     <View style={styles.item}>
       <Text style={styles.time}>{event.time}</Text>
+      
       <View style={styles.timelineCol}>
-        <View style={[styles.dot, { backgroundColor: config.color }]} />
-        {!isLast && <View style={styles.line} />}
+        <View style={[styles.line, isLast && { bottom: '50%' }]} />
+        <View style={[styles.iconCircle, { borderColor: config.color, backgroundColor: config.bgColor }]}>
+          <Text style={styles.iconEmoji}>{config.icon}</Text>
+        </View>
       </View>
+      
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <Text style={styles.cardIcon}>{config.icon}</Text>
           <Text style={styles.cardTitle}>{config.title}</Text>
         </View>
-        {event.data.q2 && <Text style={styles.summary}>{event.data.q2}</Text>}
+        <Text style={styles.summary}>{getEventSummary(event)}</Text>
         <View style={styles.tags}>
-          {Object.values(event.data).map((val, idx) => (
-            <View key={idx} style={styles.tag}>
-              <Text style={styles.tagText}>{val}</Text>
+          {Object.values(event.data).filter(Boolean).map((val, idx) => (
+            <View key={idx} style={[styles.tag, { backgroundColor: config.bgColor }]}>
+              <Text style={[styles.tagText, { color: config.color }]}>{val}</Text>
             </View>
           ))}
         </View>
@@ -102,62 +128,73 @@ function TimelineItem({ event, isLast }: { event: DiaryEvent, isLast: boolean })
 
 function getEventConfig(type: string) {
   switch (type) {
-    case 'pee': return { title: 'Xixi', icon: '〰️', color: colors.pee };
-    case 'water': return { title: 'Líquido', icon: '💧', color: colors.water };
-    case 'poop': return { title: 'Evacuação', icon: '💩', color: colors.poop };
-    case 'night': return { title: 'Noite', icon: '🌙', color: colors.night };
-    case 'escape': return { title: 'Escape', icon: '⚠️', color: colors.escape };
-    case 'pain': return { title: 'Desconforto', icon: '⚡', color: colors.pain };
-    default: return { title: 'Registro', icon: '📝', color: colors.primary };
+    case 'pee': return { title: 'Xixi', icon: '〰️', color: colors.pee, bgColor: colors.peeBackground };
+    case 'water': return { title: 'Água', icon: '💧', color: colors.water, bgColor: colors.waterBackground }; // O mock novo usa 'Água' ao invés de Líquido no título, mantendo o mock
+    case 'poop': return { title: 'Cocô', icon: '💩', color: colors.poop, bgColor: colors.poopBackground };
+    case 'night': return { title: 'Noite', icon: '🌙', color: colors.night, bgColor: colors.nightBackground };
+    case 'escape': return { title: 'Escape', icon: '⚠️', color: colors.escape, bgColor: colors.escapeBackground };
+    case 'pain': return { title: 'Desconforto', icon: '😣', color: colors.pain, bgColor: colors.painBackground };
+    default: return { title: 'Registro', icon: '📝', color: colors.primary, bgColor: '#E8EAF6' };
   }
 }
 
+function getEventSummary(event: DiaryEvent) {
+  if (!event.data) return '';
+  if (event.type === 'pee') return `Volume ${event.data.q2?.toLowerCase() || ''}`;
+  
+  const parts = [];
+  if (event.data.q1) parts.push(event.data.q1);
+  if (event.data.q2) parts.push(event.data.q2);
+  return parts.join(', ');
+}
+
 const styles = StyleSheet.create({
-  header: {
-    padding: metrics.paddingLg,
-    paddingTop: metrics.paddingSm,
+  topBar: {
+    paddingHorizontal: metrics.paddingLg,
+    paddingBottom: metrics.paddingMd,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: colors.background,
   },
   childSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    paddingHorizontal: metrics.paddingMd,
-    paddingVertical: metrics.paddingSm,
-    borderRadius: metrics.radiusXl,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
-  avatar: {
-    fontSize: 20,
-    marginRight: metrics.paddingSm,
+  avatarWrapper: {
+    backgroundColor: '#FFF1E5', // Soft orange/peach background as per mock
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  avatarText: {
+    fontSize: 18,
   },
   childName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: colors.primaryDark,
+    fontWeight: 'bold',
+    color: colors.textDark,
   },
-  dateSelector: {
+  dateBar: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: metrics.paddingMd,
+    paddingHorizontal: metrics.paddingLg,
     backgroundColor: colors.surface,
-    paddingHorizontal: metrics.paddingMd,
-    paddingVertical: metrics.paddingSm,
-    borderRadius: metrics.radiusXl,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   dateText: {
-    marginLeft: 4,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: 'bold',
     color: colors.textDark,
   },
   filtersWrapper: {
+    paddingVertical: 12,
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    paddingBottom: metrics.paddingSm,
   },
   filters: {
     paddingHorizontal: metrics.paddingLg,
@@ -172,18 +209,20 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   chipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: '#2D3748',
+    borderColor: '#2D3748',
   },
   chipText: {
     color: colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: '600',
+    fontSize: 14,
   },
   chipTextActive: {
-    color: colors.surface,
+    color: '#FFFFFF',
   },
   timeline: {
     padding: metrics.paddingLg,
+    paddingTop: 24,
   },
   empty: {
     alignItems: 'center',
@@ -201,49 +240,55 @@ const styles = StyleSheet.create({
   },
   item: {
     flexDirection: 'row',
-    marginBottom: 0,
+    marginBottom: 20,
   },
   time: {
     width: 45,
-    fontSize: 14,
+    fontSize: 12,
     color: colors.textSecondary,
-    fontWeight: 'bold',
-    marginTop: 12,
+    fontWeight: '600',
+    marginTop: 10,
   },
   timelineCol: {
-    width: 24,
+    width: 40,
     alignItems: 'center',
-    marginHorizontal: 8,
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginTop: 14,
+    position: 'relative',
+    marginHorizontal: 4,
   },
   line: {
-    width: 2,
-    flex: 1,
-    backgroundColor: colors.border,
-    marginTop: 4,
+    position: 'absolute',
+    top: 10,
+    bottom: -20, // extends down to the next item
+    width: 1,
+    backgroundColor: '#CBD5E0',
+  },
+  iconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    marginTop: 0,
+    zIndex: 2,
+  },
+  iconEmoji: {
+    fontSize: 14,
   },
   card: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: '#FFFFFF',
     padding: metrics.paddingMd,
-    borderRadius: metrics.radiusMd,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: metrics.paddingMd,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  cardIcon: {
-    fontSize: 18,
-    marginRight: 8,
+    marginBottom: 4,
   },
   cardTitle: {
     fontSize: 16,
@@ -251,9 +296,9 @@ const styles = StyleSheet.create({
     color: colors.textDark,
   },
   summary: {
-    fontSize: 14,
+    fontSize: 12,
     color: colors.textSecondary,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   tags: {
     flexDirection: 'row',
@@ -261,13 +306,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tag: {
-    backgroundColor: colors.background,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
   tagText: {
     fontSize: 12,
-    color: colors.textSecondary,
+    fontWeight: 'bold',
   }
 });

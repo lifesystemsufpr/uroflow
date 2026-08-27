@@ -1171,8 +1171,122 @@
 
         <!-- GLOBAL HEADER TEMPLATE (Included in screens manually for easy scroll behavior) -->
 
+        <!-- ==================== ONBOARDING ==================== -->
+        <div id="screen-onboarding" class="screen" style="background-color: var(--bg-color); z-index: 1000; position: absolute; inset: 0; padding-bottom: 0; flex-direction: column;">
+            
+            <div id="onboarding-header" style="padding: 20px 24px; display: flex; align-items: center; justify-content: center; position: relative;">
+                <div style="font-size: 14px; font-weight: bold; color: var(--primary);">
+                    <span id="onboarding-step-indicator">1</span> de 4
+                </div>
+                <div style="position: absolute; bottom: 0; left: 24px; right: 24px; height: 4px; background-color: var(--border); border-radius: 2px;">
+                    <div id="onboarding-progress-bar" style="height: 100%; background-color: var(--primary); border-radius: 2px; width: 25%; transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+
+            <div id="onboarding-step-1" class="onboarding-step" style="flex: 1; padding: 24px; display: flex; flex-direction: column; justify-content: center;">
+                <div style="text-align: center; margin-bottom: 32px;">
+                    <h1 style="font-size: 28px; margin-bottom: 12px; color: var(--primary-dark);">Vamos começar?</h1>
+                    <p style="font-size: 16px; color: var(--text-secondary); line-height: 1.5;">Cadastre seus dados e da criança que você deseja acompanhar.</p>
+                </div>
+                <div style="margin-top: auto;">
+                    <button class="btn-primary" onclick="nextOnboardingStep()" style="width: 100%;">Começar</button>
+                </div>
+            </div>
+
+            <div id="onboarding-step-2" class="onboarding-step hidden" style="flex: 1; padding: 24px; display: flex; flex-direction: column;">
+                <div style="margin-bottom: 32px; margin-top: 24px;">
+                    <h1 style="font-size: 28px; margin-bottom: 12px; color: var(--primary-dark);">Sobre você</h1>
+                    <p style="font-size: 16px; color: var(--text-secondary); line-height: 1.5;">Vamos identificar quem está acompanhando a criança.</p>
+                </div>
+                
+                <div class="input-group">
+                    <label class="label">Seu nome</label>
+                    <input type="text" id="onboarding-guardian-name" class="input" placeholder="Ex: Maria">
+                    <p id="onboarding-error-2" class="hidden" style="color: var(--escape-color); font-size: 14px; margin-top: 8px;">Digite seu nome para continuar.</p>
+                </div>
+
+                <div style="margin-top: auto; display: flex; gap: 12px;">
+                    <button class="btn-secondary" onclick="prevOnboardingStep()" style="flex: 1;">Voltar</button>
+                    <button class="btn-primary" onclick="nextOnboardingStep()" style="flex: 1;">Continuar</button>
+                </div>
+            </div>
+
+            <div id="onboarding-step-3" class="onboarding-step hidden" style="flex: 1; padding: 24px; display: flex; flex-direction: column; overflow-y: auto;">
+                <div style="margin-bottom: 32px; margin-top: 24px;">
+                    <h1 style="font-size: 28px; margin-bottom: 12px; color: var(--primary-dark);">Agora, vamos cadastrar a criança</h1>
+                    <p style="font-size: 16px; color: var(--text-secondary); line-height: 1.5;">Essas informações ajudam a organizar o acompanhamento.</p>
+                </div>
+                
+                <div class="input-group">
+                    <label class="label">Nome ou apelido</label>
+                    <input type="text" id="onboarding-child-name" class="input" placeholder="Ex: Ana, Pedrinho...">
+                    <p id="onboarding-error-3" class="hidden" style="color: var(--escape-color); font-size: 14px; margin-top: 8px;">Digite o nome da criança para continuar.</p>
+                </div>
+
+                <div class="input-group">
+                    <label class="label">Data de nascimento</label>
+                    <input type="date" id="onboarding-child-dob" class="input" onchange="calculateOnboardingAge()">
+                    <p id="onboarding-child-age" style="font-size: 14px; color: var(--primary); font-weight: bold; margin-top: 8px;"></p>
+                </div>
+
+                <div class="input-group">
+                    <label class="label">Objetivo atual do acompanhamento <span style="font-weight:normal; color:var(--text-light)">(Opcional)</span></label>
+                    <input type="text" id="onboarding-child-goal" class="input" placeholder="Ex: Reduzir escapes na escola...">
+                </div>
+
+                <div class="input-group">
+                    <label class="label">Data da próxima consulta <span style="font-weight:normal; color:var(--text-light)">(Opcional)</span></label>
+                    <input type="date" id="onboarding-child-apt" class="input">
+                </div>
+
+                <div style="margin-top: 16px; display: flex; gap: 12px;">
+                    <button class="btn-secondary" onclick="prevOnboardingStep()" style="flex: 1;">Voltar</button>
+                    <button class="btn-primary" onclick="nextOnboardingStep()" style="flex: 1;">Continuar</button>
+                </div>
+            </div>
+
+            <div id="onboarding-step-4" class="onboarding-step hidden" style="flex: 1; padding: 24px; display: flex; flex-direction: column;">
+                <div style="margin-bottom: 32px; margin-top: 24px;">
+                    <h1 style="font-size: 28px; margin-bottom: 12px; color: var(--primary-dark);">Tudo pronto!</h1>
+                    <p style="font-size: 16px; color: var(--text-secondary); line-height: 1.5;">Confira as informações antes de começar.</p>
+                </div>
+                
+                <div class="card" style="margin-bottom: 24px;">
+                    <h3 style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 8px;">Responsável</h3>
+                    <p id="onboarding-summary-guardian" style="font-weight: bold; font-size: 18px; color: var(--text-dark); margin-bottom: 16px;"></p>
+                    
+                    <div style="height: 1px; background-color: var(--border); margin: 16px -16px;"></div>
+                    
+                    <h3 style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 12px;">Criança</h3>
+                    
+                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                        <div style="width: 48px; height: 48px; border-radius: 24px; background-color: #FFF1E5; display: flex; justify-content: center; align-items: center; font-size: 24px; margin-right: 12px;">👦</div>
+                        <div>
+                            <p id="onboarding-summary-child" style="font-weight: bold; font-size: 18px; color: var(--text-dark);"></p>
+                            <p id="onboarding-summary-age" style="color: var(--text-secondary); font-size: 14px;"></p>
+                        </div>
+                    </div>
+                    
+                    <div id="onboarding-summary-goal-box" style="margin-bottom: 8px;">
+                        <p style="font-size: 12px; color: var(--text-light);">Objetivo:</p>
+                        <p id="onboarding-summary-goal" style="font-size: 14px; color: var(--text-dark); font-weight: 500;"></p>
+                    </div>
+                    
+                    <div id="onboarding-summary-apt-box">
+                        <p style="font-size: 12px; color: var(--text-light);">Próxima Consulta:</p>
+                        <p id="onboarding-summary-apt" style="font-size: 14px; color: var(--text-dark); font-weight: 500;"></p>
+                    </div>
+                </div>
+
+                <div style="margin-top: auto; display: flex; gap: 12px;">
+                    <button class="btn-secondary" onclick="prevOnboardingStep()" style="width: 30%;">Voltar</button>
+                    <button class="btn-primary" onclick="finishOnboarding()" style="flex: 1;">Começar acompanhamento</button>
+                </div>
+            </div>
+        </div>
+
         <!-- ==================== HOME ==================== -->
-        <div id="screen-home" class="screen active">
+        <div id="screen-home" class="screen">
             <div class="header">
                 <div class="child-selector-btn" onclick="openChildSwitcher()">
                     <div class="header-avatar" id="home-avatar">👦</div>
@@ -1554,77 +1668,22 @@
     <script>
         // --- STATE MANAGEMENT ---
         let appState = {
-            currentResponsible: { id: "resp-001", name: "Responsável" },
-            children: [
-                { id: "child-001", name: "Leo", age: "8 anos", avatar: "👦" },
-                { id: "child-002", name: "Sofia", age: "5 anos", avatar: "👧" },
-                { id: "child-003", name: "Miguel", age: "3 anos", avatar: "👦" }
-            ],
-            activeChildId: "child-001"
+            currentResponsible: null,
+            children: [],
+            activeChildId: null
         };
 
         // MOCK APPOINTMENTS
-        let appointments = [
-            { id: "apt-001", childId: "child-001", specialty: "Pediatria", professionalName: "Dr. Carlos Silva", date: "2026-08-28", time: "14:30", location: "Clínica Infantil", notes: "", status: "UPCOMING", createdAt: "2026-08-01T10:00:00Z" },
-            { id: "apt-002", childId: "child-001", specialty: "Urologia Pediátrica", professionalName: "Dra. Ana Souza", date: "2026-09-15", time: "09:00", location: "Hospital Infantil", notes: "", status: "UPCOMING", createdAt: "2026-08-01T10:00:00Z" },
-            { id: "apt-003", childId: "child-001", specialty: "Nutrição", professionalName: "Dra. Marina Costa", date: "2026-06-20", time: "15:00", location: "Clínica Vida", notes: "Orientação alimentar", status: "COMPLETED", createdAt: "2026-06-01T10:00:00Z" }
-        ];
+        let appointments = [];
 
         // MOCK CONSIDERATIONS
-        let considerations = [
-            { id: "cons-001", childId: "child-001", appointmentId: null, title: "Dor ao urinar", description: "Aconteceu duas vezes esta semana.", completed: false, createdAt: "2026-08-24T10:00:00Z" },
-            { id: "cons-002", childId: "child-001", appointmentId: "apt-001", title: "Escapes durante a noite", description: "", completed: false, createdAt: "2026-08-22T10:00:00Z" }
-        ];
+        let considerations = [];
 
         const now = new Date();
         const todayDateStr = now.toISOString().split('T')[0];
 
         // MOCK DATA PARA 3 CRIANÇAS
-        let events = [
-            // LEO (6 xixis, 4 bebidas, 1 evacuação, 0 escapes)
-            { id: '1', childId: 'child-001', type: 'pee', time: '08:30', date: todayDateStr, data: { q1: 'Normal', q2: 'Médio', q3: 'Não' } },
-            { id: '2', childId: 'child-001', type: 'water', time: '09:00', date: todayDateStr, data: { q1: 'Água', q2: '200 ml' } },
-            { id: '3', childId: 'child-001', type: 'pee', time: '10:15', date: todayDateStr, data: { q1: 'Normal', q2: 'Pouco', q3: 'Não' } },
-            { id: '4', childId: 'child-001', type: 'poop', time: '11:00', date: todayDateStr, data: { q1: 'Normal', q2: 'Não', q3: 'Não' } },
-            { id: '5', childId: 'child-001', type: 'water', time: '12:30', date: todayDateStr, data: { q1: 'Suco', q2: '150 ml' } },
-            { id: '6', childId: 'child-001', type: 'pee', time: '14:00', date: todayDateStr, data: { q1: 'Vontade muito forte', q2: 'Muito', q3: 'Não' } },
-            { id: '7', childId: 'child-001', type: 'water', time: '15:30', date: todayDateStr, data: { q1: 'Água', q2: '100 ml' } },
-            { id: '8', childId: 'child-001', type: 'pee', time: '17:00', date: todayDateStr, data: { q1: 'Normal', q2: 'Médio', q3: 'Não' } },
-            { id: '9', childId: 'child-001', type: 'water', time: '18:00', date: todayDateStr, data: { q1: 'Leite', q2: '200 ml' } },
-            { id: '10', childId: 'child-001', type: 'pee', time: '20:00', date: todayDateStr, data: { q1: 'Normal', q2: 'Pouco', q3: 'Não' } },
-            { id: '11', childId: 'child-001', type: 'pee', time: '21:30', date: todayDateStr, data: { q1: 'Normal', q2: 'Médio', q3: 'Não' } },
-
-            // SOFIA (5 xixis, 6 bebidas, 1 evacuação, 1 escape)
-            { id: '12', childId: 'child-002', type: 'water', time: '07:30', date: todayDateStr, data: { q1: 'Água', q2: '150 ml' } },
-            { id: '13', childId: 'child-002', type: 'pee', time: '08:00', date: todayDateStr, data: { q1: 'Normal', q2: 'Médio', q3: 'Não' } },
-            { id: '14', childId: 'child-002', type: 'poop', time: '09:00', date: todayDateStr, data: { q1: 'Duro', q2: 'Um pouco', q3: 'Não' } },
-            { id: '15', childId: 'child-002', type: 'water', time: '10:00', date: todayDateStr, data: { q1: 'Água', q2: '200 ml' } },
-            { id: '16', childId: 'child-002', type: 'escape', time: '11:15', date: todayDateStr, data: { q1: 'Roupa ficou úmida', q2: 'Escola', q3: 'Não' } },
-            { id: '17', childId: 'child-002', type: 'pee', time: '11:30', date: todayDateStr, data: { q1: 'Normal', q2: 'Médio', q3: 'Não' } },
-            { id: '18', childId: 'child-002', type: 'water', time: '13:00', date: todayDateStr, data: { q1: 'Suco', q2: '200 ml' } },
-            { id: '19', childId: 'child-002', type: 'pee', time: '15:00', date: todayDateStr, data: { q1: 'Vontade muito forte', q2: 'Muito', q3: 'Não' } },
-            { id: '20', childId: 'child-002', type: 'water', time: '16:00', date: todayDateStr, data: { q1: 'Água', q2: '150 ml' } },
-            { id: '21', childId: 'child-002', type: 'pee', time: '18:00', date: todayDateStr, data: { q1: 'Normal', q2: 'Pouco', q3: 'Não' } },
-            { id: '22', childId: 'child-002', type: 'water', time: '19:30', date: todayDateStr, data: { q1: 'Leite', q2: '200 ml' } },
-            { id: '23', childId: 'child-002', type: 'water', time: '20:30', date: todayDateStr, data: { q1: 'Água', q2: '100 ml' } },
-            { id: '24', childId: 'child-002', type: 'pee', time: '21:00', date: todayDateStr, data: { q1: 'Normal', q2: 'Médio', q3: 'Não' } },
-
-            // MIGUEL (7 xixis, 5 bebidas, 2 evacuações, 0 escapes)
-            { id: '25', childId: 'child-003', type: 'pee', time: '07:00', date: todayDateStr, data: { q1: 'Normal', q2: 'Muito', q3: 'Não' } },
-            { id: '26', childId: 'child-003', type: 'water', time: '07:15', date: todayDateStr, data: { q1: 'Leite', q2: '200 ml' } },
-            { id: '27', childId: 'child-003', type: 'poop', time: '08:00', date: todayDateStr, data: { q1: 'Normal', q2: 'Não', q3: 'Não' } },
-            { id: '28', childId: 'child-003', type: 'pee', time: '09:30', date: todayDateStr, data: { q1: 'Normal', q2: 'Pouco', q3: 'Não' } },
-            { id: '29', childId: 'child-003', type: 'water', time: '11:00', date: todayDateStr, data: { q1: 'Água', q2: '150 ml' } },
-            { id: '30', childId: 'child-003', type: 'pee', time: '12:30', date: todayDateStr, data: { q1: 'Vontade muito forte', q2: 'Médio', q3: 'Não' } },
-            { id: '31', childId: 'child-003', type: 'water', time: '13:00', date: todayDateStr, data: { q1: 'Suco', q2: '150 ml' } },
-            { id: '32', childId: 'child-003', type: 'pee', time: '15:00', date: todayDateStr, data: { q1: 'Normal', q2: 'Médio', q3: 'Não' } },
-            { id: '33', childId: 'child-003', type: 'poop', time: '16:00', date: todayDateStr, data: { q1: 'Mole', q2: 'Não', q3: 'Não' } },
-            { id: '34', childId: 'child-003', type: 'water', time: '16:30', date: todayDateStr, data: { q1: 'Água', q2: '200 ml' } },
-            { id: '35', childId: 'child-003', type: 'pee', time: '18:00', date: todayDateStr, data: { q1: 'Normal', q2: 'Pouco', q3: 'Não' } },
-            { id: '36', childId: 'child-003', type: 'pee', time: '19:30', date: todayDateStr, data: { q1: 'Normal', q2: 'Médio', q3: 'Não' } },
-            { id: '37', childId: 'child-003', type: 'water', time: '20:00', date: todayDateStr, data: { q1: 'Água', q2: '100 ml' } },
-            { id: '38', childId: 'child-003', type: 'pee', time: '21:00', date: todayDateStr, data: { q1: 'Vontade muito forte', q2: 'Muito', q3: 'Não' } }
-        ];
+        let events = [];
 
         function getActiveChild() {
             return appState.children.find(c => c.id === appState.activeChildId);
@@ -1633,6 +1692,7 @@
         // Update global headers with current child
         function updateGlobalHeaders() {
             const child = getActiveChild();
+            if (!child) return;
             const avatars = ['home-avatar', 'consult-avatar', 'diary-avatar', 'evo-avatar'];
             const names = ['home-name', 'consult-name', 'diary-name', 'evo-name'];
 
@@ -2534,9 +2594,150 @@
             }
         }
 
+        // --- ONBOARDING LOGIC ---
+        let currentOnboardingStep = 1;
+        
+        function nextOnboardingStep() {
+            if (currentOnboardingStep === 2) {
+                const nameInput = document.getElementById('onboarding-guardian-name').value.trim();
+                if (!nameInput) {
+                    document.getElementById('onboarding-error-2').classList.remove('hidden');
+                    return;
+                }
+                document.getElementById('onboarding-error-2').classList.add('hidden');
+                document.getElementById('onboarding-summary-guardian').innerText = nameInput;
+            } else if (currentOnboardingStep === 3) {
+                const childName = document.getElementById('onboarding-child-name').value.trim();
+                if (!childName) {
+                    document.getElementById('onboarding-error-3').classList.remove('hidden');
+                    return;
+                }
+                document.getElementById('onboarding-error-3').classList.add('hidden');
+                
+                document.getElementById('onboarding-summary-child').innerText = childName;
+                
+                const goal = document.getElementById('onboarding-child-goal').value.trim();
+                if (goal) {
+                    document.getElementById('onboarding-summary-goal-box').style.display = 'block';
+                    document.getElementById('onboarding-summary-goal').innerText = goal;
+                } else {
+                    document.getElementById('onboarding-summary-goal-box').style.display = 'none';
+                }
+                
+                const apt = document.getElementById('onboarding-child-apt').value;
+                if (apt) {
+                    document.getElementById('onboarding-summary-apt-box').style.display = 'block';
+                    const parts = apt.split('-');
+                    document.getElementById('onboarding-summary-apt').innerText = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                } else {
+                    document.getElementById('onboarding-summary-apt-box').style.display = 'none';
+                }
+            }
+
+            if (currentOnboardingStep < 4) {
+                document.getElementById(`onboarding-step-${currentOnboardingStep}`).classList.add('hidden');
+                currentOnboardingStep++;
+                document.getElementById(`onboarding-step-${currentOnboardingStep}`).classList.remove('hidden');
+                document.getElementById('onboarding-step-indicator').innerText = currentOnboardingStep;
+                document.getElementById('onboarding-progress-bar').style.width = `${currentOnboardingStep * 25}%`;
+            }
+        }
+
+        function prevOnboardingStep() {
+            if (currentOnboardingStep > 1) {
+                document.getElementById(`onboarding-step-${currentOnboardingStep}`).classList.add('hidden');
+                currentOnboardingStep--;
+                document.getElementById(`onboarding-step-${currentOnboardingStep}`).classList.remove('hidden');
+                document.getElementById('onboarding-step-indicator').innerText = currentOnboardingStep;
+                document.getElementById('onboarding-progress-bar').style.width = `${currentOnboardingStep * 25}%`;
+            }
+        }
+
+        function calculateOnboardingAge() {
+            const dob = document.getElementById('onboarding-child-dob').value;
+            if (!dob) {
+                document.getElementById('onboarding-child-age').innerText = '';
+                document.getElementById('onboarding-summary-age').innerText = '';
+                return;
+            }
+            const birthDate = new Date(dob);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            const ageStr = `${age} anos`;
+            document.getElementById('onboarding-child-age').innerText = ageStr;
+            document.getElementById('onboarding-summary-age').innerText = ageStr;
+        }
+
+        function finishOnboarding() {
+            const guardianName = document.getElementById('onboarding-guardian-name').value.trim();
+            const childName = document.getElementById('onboarding-child-name').value.trim();
+            const ageStr = document.getElementById('onboarding-child-age').innerText || 'Sem idade informada';
+            const goal = document.getElementById('onboarding-child-goal').value.trim();
+            const aptDate = document.getElementById('onboarding-child-apt').value;
+
+            // 1 & 2 & 3. Create responsible and child, associate
+            appState.currentResponsible = { id: 'resp-001', name: guardianName };
+            
+            const newChildId = 'child-' + Date.now();
+            appState.children.push({
+                id: newChildId,
+                name: childName,
+                age: ageStr,
+                avatar: '👦'
+            });
+            
+            // 4. Set as active
+            appState.activeChildId = newChildId;
+
+            // 5. Goal as consideration
+            if (goal) {
+                considerations.push({
+                    id: 'cons-' + Date.now(),
+                    childId: newChildId,
+                    appointmentId: null,
+                    title: goal,
+                    description: '',
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                });
+            }
+
+            // 6. Appointment
+            if (aptDate) {
+                appointments.push({
+                    id: 'apt-' + Date.now(),
+                    childId: newChildId,
+                    specialty: 'Pediatria / Geral',
+                    professionalName: 'A definir',
+                    date: aptDate,
+                    time: '00:00',
+                    location: 'A definir',
+                    notes: '',
+                    status: 'UPCOMING',
+                    createdAt: new Date().toISOString()
+                });
+            }
+
+            document.querySelector('.bottom-nav').style.display = 'flex';
+            
+            // Re-render everything needed and nav to home
+            updateGlobalHeaders();
+            nav('screen-home');
+        }
+
         // INIT
-        updateGlobalHeaders();
-        renderHome();
+        if (appState.children.length === 0) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-onboarding').classList.add('active');
+            document.querySelector('.bottom-nav').style.display = 'none';
+        } else {
+            updateGlobalHeaders();
+            renderHome();
+        }
 
     </script>
 </body>

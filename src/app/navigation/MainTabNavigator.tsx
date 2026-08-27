@@ -1,6 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
+import { Text } from 'react-native';
 import { colors } from '../shared/theme/colors';
 
 import { HomeScreen } from '../features/dashboard';
@@ -14,13 +14,18 @@ export function MainTabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName = 'home';
-            if (route.name === 'Home') iconName = focused ? 'home' : 'home-outline';
-            else if (route.name === 'Diary') iconName = focused ? 'book' : 'book-outline';
-            else if (route.name === 'Consultations') iconName = focused ? 'medical' : 'medical-outline';
-            else if (route.name === 'Evolution') iconName = focused ? 'bar-chart' : 'bar-chart-outline';
-            return <Ionicons name={iconName as any} size={size} color={color} />;
+          tabBarIcon: ({ focused, size }) => {
+            let emoji = '🏠';
+            if (route.name === 'Home') emoji = '🏠';
+            else if (route.name === 'Diary') emoji = '🗓️';
+            else if (route.name === 'Consultations') emoji = '🩺';
+            else if (route.name === 'Evolution') emoji = '📈';
+            
+            return (
+              <Text style={{ fontSize: size * 0.9, opacity: focused ? 1 : 0.5 }}>
+                {emoji}
+              </Text>
+            );
           },
           tabBarActiveTintColor: colors.primary,
           tabBarInactiveTintColor: colors.textLight,
