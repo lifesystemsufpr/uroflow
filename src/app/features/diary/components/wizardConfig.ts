@@ -228,22 +228,44 @@ export const wizardDefinitions: Record<string, WizardDefinition> = {
     steps: [
       {
         id: 'q1',
-        question: 'Qual foi o tamanho do escape?',
+        question: 'Quanto molhou?',
         type: 'options',
         options: [
-          { id: '1', label: 'Apenas sujou a cueca/calcinha' },
-          { id: '2', label: 'Molhou a roupa externa' },
+          { id: '1', label: 'Só gotas', icon: '💧' },
+          { id: '2', label: 'Roupa ficou úmida', icon: '👕' },
+          { id: '3', label: 'Precisou trocar a roupa', icon: '👖' },
         ]
       },
       {
         id: 'q2',
-        question: 'O que a criança estava fazendo?',
+        question: 'Onde estava?',
         type: 'options',
         options: [
-          { id: '1', label: 'Brincando' },
-          { id: '2', label: 'Assistindo TV' },
-          { id: '3', label: 'Dormindo' },
-          { id: '4', label: 'Rindo' },
+          { id: '1', label: 'Casa', icon: '🏠' },
+          { id: '2', label: 'Escola', icon: '🏫' },
+          { id: '3', label: 'Passeio', icon: '🌳' },
+          { id: '4', label: 'Outro lugar', icon: '📍' },
+        ]
+      },
+      {
+        id: 'q3',
+        question: 'Percebeu a vontade antes?',
+        type: 'options',
+        options: [
+          { id: '1', label: 'Sim, percebeu', icon: '👍' },
+          { id: '2', label: 'Não percebeu', icon: '😲' },
+          { id: '3', label: 'Percebeu um pouquinho', icon: '🤔' },
+        ]
+      },
+      {
+        id: 'q4',
+        question: 'Opcional — como ficou?',
+        type: 'options',
+        options: [
+          { id: '1', label: 'Tranquilo', icon: '😊' },
+          { id: '2', label: 'Preocupado', icon: '🥺' },
+          { id: '3', label: 'Com vergonha', icon: '😳' },
+          { id: '4', label: 'Outro', icon: '💭' },
         ]
       }
     ]
@@ -258,12 +280,23 @@ export const wizardDefinitions: Record<string, WizardDefinition> = {
     steps: [
       {
         id: 'q1',
-        question: 'O que a criança sentiu?',
+        question: 'Onde está a dor ou desconforto?',
         type: 'options',
         options: [
-          { id: '1', label: 'Dor ao fazer xixi' },
-          { id: '2', label: 'Dor na barriga' },
-          { id: '3', label: 'Coceira' },
+          { id: '1', label: 'Na barriga', icon: '🤢' },
+          { id: '2', label: 'Na hora do xixi', icon: '💧' },
+          { id: '3', label: 'Nas costas', icon: '😣' },
+          { id: '4', label: 'Outro lugar', icon: '📍' },
+        ]
+      },
+      {
+        id: 'q2',
+        question: 'Como é a dor?',
+        type: 'options',
+        options: [
+          { id: '1', label: 'Leve', icon: '😟' },
+          { id: '2', label: 'Média', icon: '😣' },
+          { id: '3', label: 'Forte', icon: '😭' },
         ]
       }
     ]

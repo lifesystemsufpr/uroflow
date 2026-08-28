@@ -166,6 +166,12 @@ export function WizardScreen() {
 
       <View style={styles.footer}>
         <View style={styles.footerButtons}>
+          {currentStep > 0 && (
+            <TouchableOpacity style={styles.btnVoltar} onPress={handlePrev}>
+              <Text style={styles.btnVoltarText}>Voltar</Text>
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity 
             style={[
               styles.btnPrimary, 
@@ -180,10 +186,6 @@ export function WizardScreen() {
             ]}>
               {step.type === 'text' ? 'Salvar registro' : 'Avançar'}
             </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.btnVoltar} onPress={handlePrev}>
-            <Text style={styles.btnVoltarText}>← Voltar</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -317,9 +319,10 @@ const styles = StyleSheet.create({
     borderTopColor: '#E2E8F0',
   },
   footerButtons: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     width: '100%',
-    gap: 16,
+    gap: 12,
+    alignItems: 'center',
   },
   btnPrimary: {
     flex: 1,
@@ -338,13 +341,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   btnVoltar: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    alignSelf: 'flex-start',
     backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   btnVoltarText: {
     color: '#64748B',
