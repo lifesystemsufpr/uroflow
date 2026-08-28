@@ -21,11 +21,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       consStore._hasHydrated;
 
     if (isHydrated && !isReady) {
-      // In production, you wouldn't seed every time.
-      // We seed only if the child store is empty to ensure we have data for testing.
-      if (childStore.children.length === 0) {
-        seedDatabase();
-      }
       setIsReady(true);
     }
   }, [childStore._hasHydrated, eventStore._hasHydrated, apptStore._hasHydrated, consStore._hasHydrated, childStore.children.length, isReady]);

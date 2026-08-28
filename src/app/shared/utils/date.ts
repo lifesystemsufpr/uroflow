@@ -34,7 +34,21 @@ export function isToday(dateStr: string): boolean {
 export function calculateAge(birthDateStr?: string): string {
   if (!birthDateStr) return '';
   try {
-    const birthDate = parseISO(birthDateStr);
+    let birthDate: Date;
+    
+    if (birthDateStr.includes('/')) {
+      const parts = birthDateStr.split('/');
+      if (parts.length === 3) {
+        birthDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`);
+      } else {
+        return '';
+      }
+    } else {
+      birthDate = parseISO(birthDateStr);
+    }
+    
+    if (isNaN(birthDate.getTime())) return '';
+
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();

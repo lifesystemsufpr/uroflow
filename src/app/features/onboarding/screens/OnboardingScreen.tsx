@@ -73,7 +73,9 @@ export function OnboardingScreen() {
     
     const newChild = addChild({
       name: childName.trim(),
-      avatar: '👦', // default
+      avatar: '👦',
+      birthDate: childDob.trim(),
+      goal: childGoal.trim()
     });
 
     if (childGoal.trim()) {
@@ -169,9 +171,6 @@ export function OnboardingScreen() {
                   keyboardType="numeric"
                   maxLength={10}
                 />
-                {childDob.length === 10 && isValidDateString(childDob) && (
-                  <Text style={styles.ageText}>{calculateAge(childDob)}</Text>
-                )}
               </View>
 
               <View style={styles.inputGroup}>
@@ -239,7 +238,7 @@ export function OnboardingScreen() {
 
         <View style={styles.footer}>
           {step === 1 ? (
-            <TouchableOpacity style={styles.primaryButton} onPress={handleNext}>
+            <TouchableOpacity style={[styles.primaryButton, { flex: 1 }]} onPress={handleNext}>
               <Text style={styles.primaryButtonText}>Começar</Text>
             </TouchableOpacity>
           ) : step === 4 ? (
