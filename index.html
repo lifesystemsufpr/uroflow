@@ -69,6 +69,8 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            transform: translateZ(0);
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
         }
 
         @media (min-width: 420px) {
@@ -583,14 +585,19 @@
             padding: 16px;
             font-size: 15px;
             color: var(--text-dark);
-            resize: none;
+            background: var(--surface);
+            resize: vertical;
             outline: none;
-            transition: 0.2s;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
             font-family: inherit;
         }
 
         .quiz-textarea:focus {
             border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-light);
+            background: #ffffff;
+            transform: translateY(-1px);
         }
 
         .wizard-context {
@@ -674,6 +681,10 @@
             bottom: 0;
             width: 2px;
             background: var(--border);
+        }
+
+        .timeline.empty::before {
+            display: none;
         }
 
         .timeline-item {
@@ -1018,7 +1029,7 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
-            z-index: 300;
+            z-index: 2000;
             display: flex;
             justify-content: center;
             align-items: flex-end;
@@ -1070,22 +1081,23 @@
 
         .form-label {
             font-size: 14px;
-            color: var(--text-secondary);
+            color: var(--text-dark);
             margin-bottom: 8px;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .form-input {
             width: 100%;
             padding: 14px 16px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            background: transparent;
+            border-radius: var(--radius-md);
+            border: 2px solid var(--border);
+            background: var(--surface);
             font-size: 15px;
             color: var(--text-dark);
             font-family: inherit;
             outline: none;
-            transition: border-color 0.2s, background-color 0.2s;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
 
         textarea.form-input {
@@ -1094,11 +1106,14 @@
 
         .form-input:focus {
             border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-light);
             background: #ffffff;
+            transform: translateY(-1px);
         }
 
         .form-input::placeholder {
             color: var(--text-light);
+            font-weight: 400;
         }
 
         .child-item {
@@ -1151,7 +1166,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 310;
+            z-index: 2010;
             padding: 24px;
         }
 
@@ -1191,30 +1206,32 @@
 
             <div id="onboarding-step-1" class="onboarding-step"
                 style="flex: 1; padding: 24px; display: flex; flex-direction: column; justify-content: center;">
-                <div style="text-align: center; margin-bottom: 32px;">
+                <div style="text-align: center; margin: auto 0;">
                     <h1 style="font-size: 28px; margin-bottom: 12px; color: var(--primary-dark);">Vamos começar?</h1>
                     <p style="font-size: 16px; color: var(--text-secondary); line-height: 1.5;">Cadastre seus dados e da
                         criança que você deseja acompanhar.</p>
                 </div>
-                <div style="margin-top: auto;">
+                <div>
                     <button class="btn-primary" onclick="nextOnboardingStep()" style="width: 100%;">Começar</button>
                 </div>
             </div>
 
             <div id="onboarding-step-2" class="onboarding-step hidden"
                 style="flex: 1; padding: 24px; display: flex; flex-direction: column;">
-                <div style="margin-bottom: 32px; margin-top: 24px;">
-                    <h1 style="font-size: 28px; margin-bottom: 12px; color: var(--primary-dark);">Sobre você</h1>
-                    <p style="font-size: 16px; color: var(--text-secondary); line-height: 1.5;">Vamos identificar quem
-                        está acompanhando a criança.</p>
-                </div>
+                <div style="margin: auto 0;">
+                    <div style="margin-bottom: 32px; text-align: center;">
+                        <h1 style="font-size: 28px; margin-bottom: 12px; color: var(--primary-dark);">Sobre você</h1>
+                        <p style="font-size: 16px; color: var(--text-secondary); line-height: 1.5;">Vamos identificar quem
+                            está acompanhando a criança.</p>
+                    </div>
 
-                <div class="input-group">
-                    <label class="label">Seu nome</label>
-                    <input type="text" id="onboarding-guardian-name" class="input" placeholder="Ex: Maria">
-                    <p id="onboarding-error-2" class="hidden"
-                        style="color: var(--escape-color); font-size: 14px; margin-top: 8px;">Digite seu nome para
-                        continuar.</p>
+                    <div class="form-group">
+                        <label class="form-label">Seu nome</label>
+                        <input type="text" id="onboarding-guardian-name" class="form-input" placeholder="Ex: Maria">
+                        <p id="onboarding-error-2" class="hidden"
+                            style="color: var(--escape-color); font-size: 14px; margin-top: 8px;">Digite seu nome para
+                            continuar.</p>
+                    </div>
                 </div>
 
                 <div style="margin-top: auto; display: flex; gap: 12px;">
@@ -1225,39 +1242,37 @@
 
             <div id="onboarding-step-3" class="onboarding-step hidden"
                 style="flex: 1; padding: 24px; display: flex; flex-direction: column; overflow-y: auto;">
-                <div style="margin-bottom: 32px; margin-top: 24px;">
+                <div style="margin-bottom: 32px; margin-top: 24px; text-align: center;">
                     <h1 style="font-size: 28px; margin-bottom: 12px; color: var(--primary-dark);">Agora, vamos cadastrar
                         a criança</h1>
                     <p style="font-size: 16px; color: var(--text-secondary); line-height: 1.5;">Essas informações ajudam
                         a organizar o acompanhamento.</p>
                 </div>
 
-                <div class="input-group">
-                    <label class="label">Nome ou apelido</label>
-                    <input type="text" id="onboarding-child-name" class="input" placeholder="Ex: Ana, Pedrinho...">
+                <div class="form-group">
+                    <label class="form-label">Nome ou apelido</label>
+                    <input type="text" id="onboarding-child-name" class="form-input" placeholder="Ex: Ana, Pedrinho...">
                     <p id="onboarding-error-3" class="hidden"
                         style="color: var(--escape-color); font-size: 14px; margin-top: 8px;">Digite o nome da criança
                         para continuar.</p>
                 </div>
 
-                <div class="input-group">
-                    <label class="label">Data de nascimento</label>
-                    <input type="date" id="onboarding-child-dob" class="input" onchange="calculateOnboardingAge()">
-                    <p id="onboarding-child-age"
-                        style="font-size: 14px; color: var(--primary); font-weight: bold; margin-top: 8px;"></p>
+                <div class="form-group">
+                    <label class="form-label">Data de nascimento</label>
+                    <input type="date" id="onboarding-child-dob" class="form-input">
                 </div>
 
-                <div class="input-group">
-                    <label class="label">Objetivo atual do acompanhamento <span
+                <div class="form-group">
+                    <label class="form-label">Objetivo atual do acompanhamento <span
                             style="font-weight:normal; color:var(--text-light)">(Opcional)</span></label>
-                    <input type="text" id="onboarding-child-goal" class="input"
+                    <input type="text" id="onboarding-child-goal" class="form-input"
                         placeholder="Ex: Reduzir escapes na escola...">
                 </div>
 
-                <div class="input-group">
-                    <label class="label">Data da próxima consulta <span
+                <div class="form-group">
+                    <label class="form-label">Próxima consulta <span
                             style="font-weight:normal; color:var(--text-light)">(Opcional)</span></label>
-                    <input type="date" id="onboarding-child-apt" class="input">
+                    <button class="btn-secondary" id="onboarding-btn-apt" style="width: 100%; border-style: dashed;" onclick="openAptModal()">+ Adicionar Nova Consulta</button>
                 </div>
 
                 <div style="margin-top: 16px; display: flex; gap: 12px;">
@@ -1268,7 +1283,7 @@
 
             <div id="onboarding-step-4" class="onboarding-step hidden"
                 style="flex: 1; padding: 24px; display: flex; flex-direction: column;">
-                <div style="margin-bottom: 32px; margin-top: 24px;">
+                <div style="margin-bottom: 32px; margin-top: 24px; text-align: center;">
                     <h1 style="font-size: 28px; margin-bottom: 12px; color: var(--primary-dark);">Tudo pronto!</h1>
                     <p style="font-size: 16px; color: var(--text-secondary); line-height: 1.5;">Confira as informações
                         antes de começar.</p>
@@ -1433,7 +1448,6 @@
                 <div class="filter-chip" onclick="setDiaryFilter('poop')">Cocô</div>
                 <div class="filter-chip" onclick="setDiaryFilter('escape')">Escape</div>
                 <div class="filter-chip" onclick="setDiaryFilter('night')">Noite</div>
-                <div class="filter-chip" onclick="setDiaryFilter('pain')">Desconforto</div>
             </div>
             <div class="timeline" id="diary-timeline">
                 <!-- Populated by JS -->
@@ -1461,8 +1475,6 @@
                 <div class="css-chart" id="chart-pee">
                     <!-- JS -->
                 </div>
-                <p class="text-center mt-4" style="font-size:12px; color:var(--text-light);">Veja como os registros
-                    mudaram nos últimos dias.</p>
             </div>
 
             <div class="chart-card">
@@ -1592,12 +1604,10 @@
                         style="background:none; border:none; font-size:24px; color:var(--text-light); cursor:pointer;"
                         onclick="closeModals()">×</button>
                 </div>
-                <div class="bs-content" style="display:flex; flex-direction:column; gap:16px;">
-                    <div>
-                        <label
-                            style="font-size:13px; font-weight:600; color:var(--text-light); display:block; margin-bottom:4px;">Especialidade</label>
-                        <select id="new-apt-spec"
-                            style="width:100%; padding:12px; border-radius:var(--radius-md); border:1px solid var(--border); font-size:16px;">
+                <div class="bs-content" style="display:flex; flex-direction:column; gap:8px;">
+                    <div class="form-group">
+                        <label class="form-label">Especialidade</label>
+                        <select id="new-apt-spec" class="form-input">
                             <option value="Pediatria">Pediatria</option>
                             <option value="Urologia pediátrica">Urologia pediátrica</option>
                             <option value="Nefrologia">Nefrologia</option>
@@ -1607,37 +1617,27 @@
                             <option value="Outro">Outro</option>
                         </select>
                     </div>
-                    <div style="display:flex; gap:12px;">
-                        <div style="flex:2;">
-                            <label
-                                style="font-size:13px; font-weight:600; color:var(--text-light); display:block; margin-bottom:4px;">Data</label>
-                            <input type="date" id="new-apt-date"
-                                style="width:100%; padding:12px; border-radius:var(--radius-md); border:1px solid var(--border); font-size:16px;">
+                    <div style="display:flex; gap:12px; margin-bottom: 20px;">
+                        <div style="flex:2; display: flex; flex-direction: column;">
+                            <label class="form-label">Data</label>
+                            <input type="date" id="new-apt-date" class="form-input">
                         </div>
-                        <div style="flex:1;">
-                            <label
-                                style="font-size:13px; font-weight:600; color:var(--text-light); display:block; margin-bottom:4px;">Horário</label>
-                            <input type="time" id="new-apt-time"
-                                style="width:100%; padding:12px; border-radius:var(--radius-md); border:1px solid var(--border); font-size:16px;">
+                        <div style="flex:1; display: flex; flex-direction: column;">
+                            <label class="form-label">Horário</label>
+                            <input type="time" id="new-apt-time" class="form-input">
                         </div>
                     </div>
-                    <div>
-                        <label
-                            style="font-size:13px; font-weight:600; color:var(--text-light); display:block; margin-bottom:4px;">Profissional</label>
-                        <input type="text" id="new-apt-prof" placeholder="Nome do médico(a)"
-                            style="width:100%; padding:12px; border-radius:var(--radius-md); border:1px solid var(--border); font-size:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Profissional</label>
+                        <input type="text" id="new-apt-prof" placeholder="Nome do médico(a)" class="form-input">
                     </div>
-                    <div>
-                        <label
-                            style="font-size:13px; font-weight:600; color:var(--text-light); display:block; margin-bottom:4px;">Local</label>
-                        <input type="text" id="new-apt-loc" placeholder="Clínica, hospital..."
-                            style="width:100%; padding:12px; border-radius:var(--radius-md); border:1px solid var(--border); font-size:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Local</label>
+                        <input type="text" id="new-apt-loc" placeholder="Clínica, hospital..." class="form-input">
                     </div>
-                    <div>
-                        <label
-                            style="font-size:13px; font-weight:600; color:var(--text-light); display:block; margin-bottom:4px;">Observação</label>
-                        <input type="text" id="new-apt-obs" placeholder="Motivo da consulta"
-                            style="width:100%; padding:12px; border-radius:var(--radius-md); border:1px solid var(--border); font-size:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Observação</label>
+                        <input type="text" id="new-apt-obs" placeholder="Motivo da consulta" class="form-input">
                     </div>
                 </div>
                 <div class="mt-4 flex gap-2">
@@ -1660,20 +1660,14 @@
                         style="background:none; border:none; font-size:24px; color:var(--text-light); cursor:pointer;"
                         onclick="closeModals()">×</button>
                 </div>
-                <div class="bs-content" style="display:flex; flex-direction:column; gap:16px;">
-                    <div>
-                        <label
-                            style="font-size:13px; font-weight:600; color:var(--text-light); display:block; margin-bottom:4px;">Assunto
-                            (Curto)</label>
-                        <input type="text" id="new-consid-title" placeholder="Ex: Escape durante a noite"
-                            style="width:100%; padding:12px; border-radius:var(--radius-md); border:1px solid var(--border); font-size:16px;">
+                <div class="bs-content" style="display:flex; flex-direction:column; gap:8px;">
+                    <div class="form-group">
+                        <label class="form-label">Assunto (Curto)</label>
+                        <input type="text" id="new-consid-title" placeholder="Ex: Escape durante a noite" class="form-input">
                     </div>
-                    <div>
-                        <label
-                            style="font-size:13px; font-weight:600; color:var(--text-light); display:block; margin-bottom:4px;">Detalhes
-                            (Opcional)</label>
-                        <textarea id="new-consid-desc" placeholder="Adicione mais detalhes se precisar..."
-                            style="width:100%; padding:12px; border-radius:var(--radius-md); border:1px solid var(--border); font-size:16px; height:80px; resize:none; font-family:inherit;"></textarea>
+                    <div class="form-group">
+                        <label class="form-label">Detalhes (Opcional)</label>
+                        <textarea id="new-consid-desc" placeholder="Adicione mais detalhes se precisar..." class="form-input" style="height:100px; resize:vertical;"></textarea>
                     </div>
                 </div>
                 <div class="mt-4">
@@ -2114,22 +2108,52 @@
             renderDiary();
         }
 
+        let currentDiaryDate = new Date();
+
+        function changeDiaryDate(days) {
+            currentDiaryDate.setDate(currentDiaryDate.getDate() + days);
+            const today = new Date();
+            if (currentDiaryDate.toISOString().split('T')[0] > today.toISOString().split('T')[0]) {
+                currentDiaryDate = new Date();
+            }
+            renderDiary();
+        }
+
         function renderDiary() {
-            const today = now.toISOString().split('T')[0];
+            const todayStr = new Date().toISOString().split('T')[0];
+            const targetStr = currentDiaryDate.toISOString().split('T')[0];
+            const isToday = targetStr === todayStr;
 
             // Visual indicator for appointments today
-            const hasAptToday = appointments.some(a => a.childId === appState.activeChildId && a.date === today && a.status !== 'CANCELLED');
+            const hasApt = appointments.some(a => a.childId === appState.activeChildId && a.date === targetStr && a.status !== 'CANCELLED');
             const dateLabel = document.querySelector('.date-selector .date-label');
             if (dateLabel) {
-                if (hasAptToday) {
-                    dateLabel.innerHTML = `Hoje <span style="display:inline-block; width:8px; height:8px; background:var(--primary); border-radius:50%; margin-left:6px; margin-bottom:2px;"></span>`;
+                let labelText = isToday ? 'Hoje' : targetStr.split('-').reverse().join('/');
+                if (hasApt) {
+                    dateLabel.innerHTML = `${labelText} <span style="display:inline-block; width:8px; height:8px; background:var(--primary); border-radius:50%; margin-left:6px; margin-bottom:2px;"></span>`;
                 } else {
-                    dateLabel.innerHTML = `Hoje`;
+                    dateLabel.innerHTML = `${labelText}`;
+                }
+            }
+
+            const prevBtn = document.querySelectorAll('.date-selector .date-btn')[0];
+            if (prevBtn) {
+                prevBtn.onclick = () => changeDiaryDate(-1);
+            }
+            
+            const nextBtn = document.querySelectorAll('.date-selector .date-btn')[1];
+            if (nextBtn) {
+                if (isToday) {
+                    nextBtn.style.color = 'var(--disabled)';
+                    nextBtn.onclick = null;
+                } else {
+                    nextBtn.style.color = '';
+                    nextBtn.onclick = () => changeDiaryDate(1);
                 }
             }
 
             // FILTER BY ACTIVE CHILD
-            let filtered = events.filter(e => e.date === today && e.childId === appState.activeChildId);
+            let filtered = events.filter(e => e.date === targetStr && e.childId === appState.activeChildId);
 
             if (currentFilter !== 'all') {
                 filtered = filtered.filter(e => e.type === currentFilter);
@@ -2141,13 +2165,16 @@
             filtered.sort((a, b) => b.time.localeCompare(a.time));
 
             if (filtered.length === 0) {
+                container.classList.add('empty');
                 container.innerHTML = `
           <div class="empty-state">
             <div class="empty-icon">🤷</div>
-            <div class="empty-text">Hoje ainda não há registros para este filtro.</div>
+            <div class="empty-text">Não há registros para este dia e filtro.</div>
           </div>
         `;
                 return;
+            } else {
+                container.classList.remove('empty');
             }
 
             filtered.forEach(evt => {
@@ -2247,35 +2274,96 @@
             pee: {
                 title: "Como foi o xixi?", icon: "〰️", bg: "var(--pee-bg)",
                 steps: [
-                    { q: "Como demonstrou vontade?", options: ["Normal", "Vontade muito forte", "Apareceu de repente", "Quase não percebeu"] },
-                    { q: "Quanto foi?", options: ["Pouco", "Médio", "Muito"] },
-                    { q: "Teve algum desconforto?", options: ["Não", "Sim"] }
-                ],
-                followUp: { stepIndex: 2, triggerOption: "Sim", steps: [{ q: "Como foi o desconforto?", options: ["Ardência", "Dor", "Outro"] }] }
+                    { q: "Como {childName} demonstrou vontade de fazer xixi?", options: [
+                        { icon: "😌", label: "Vontade normal", value: "Vontade normal" },
+                        { icon: "😬", label: "Vontade muito forte", value: "Vontade muito forte" },
+                        { icon: "😴", label: "Quase não percebeu", value: "Quase não percebeu" },
+                        { icon: "⚡", label: "Apareceu de repente", value: "Apareceu de repente" }
+                    ]},
+                    { q: "Onde aconteceu?", options: [
+                        { icon: "🏠", label: "Casa", value: "Casa" },
+                        { icon: "🏫", label: "Escola", value: "Escola" },
+                        { icon: "🌳", label: "Passeio", value: "Passeio" },
+                        { icon: "📍", label: "Outro lugar", value: "Outro lugar" }
+                    ]},
+                    { q: "Como foi a quantidade?", options: [
+                        { icon: "💧", label: "Pouca", value: "Pouca" },
+                        { icon: "💧💧", label: "Média", value: "Média" },
+                        { icon: "💧💧💧", label: "Muita", value: "Muita" }
+                    ]},
+                    { q: "Teve algum desconforto?", options: [
+                        { icon: "😌", label: "Não, foi tranquilo", value: "Não, foi tranquilo" },
+                        { icon: "🔥", label: "Ardência", value: "Ardência" },
+                        { icon: "😣", label: "Dor", value: "Dor" },
+                        { icon: "⏳", label: "Demorou para sair", value: "Demorou para sair" }
+                    ]}
+                ]
             },
             water: {
-                title: "O que bebeu agora?", icon: "💧", bg: "var(--water-bg)",
+                title: "Registro de líquidos", icon: "💧", bg: "var(--water-bg)",
                 steps: [
-                    { q: "O que bebeu?", options: ["Água", "Suco", "Leite", "Chá", "Outro"] },
-                    { q: "Quanto bebeu?", options: ["100 ml", "150 ml", "200 ml", "250 ml", "Outro"] }
-                ]
+                    { q: "Qual copo foi usado?", options: [
+                        { icon: "🥛", label: "Copo pequeno", value: "Copo pequeno" },
+                        { icon: "🥤", label: "Copo médio", value: "Copo médio" },
+                        { icon: "🍶", label: "Copo grande", value: "Copo grande" }
+                    ]},
+                    { q: "Quanto {childName} bebeu?", options: [
+                        { icon: "🌗", label: "Metade do copo", value: "Metade do copo" },
+                        { icon: "🌕", label: "Copo cheio", value: "Copo cheio" },
+                        { icon: "✨", label: "Mais de um copo", value: "Mais de um copo" }
+                    ]},
+                    { q: "O que bebeu?", options: [
+                        { icon: "💧", label: "Água", value: "Água" },
+                        { icon: "🍹", label: "Suco", value: "Suco" },
+                        { icon: "🥛", label: "Leite", value: "Leite" },
+                        { icon: "☕", label: "Chá", value: "Chá" },
+                        { icon: "🧃", label: "Outra bebida", value: "Outra bebida" }
+                    ]}
+                ],
+                followUp: { stepIndex: 2, triggerOption: "Outra bebida", steps: [{ q: "Qual bebida?", type: "textarea", optional: false }] }
             },
             poop: {
                 title: "Como foi a evacuação?", icon: "💩", bg: "var(--poop-bg)",
                 steps: [
-                    { q: "Como estava o cocô?", options: ["Duro", "Normal", "Mole"] },
-                    { q: "Precisou fazer força?", options: ["Não", "Um pouco", "Muito"] },
-                    { q: "Sentiu dor?", options: ["Não", "Sim"] }
-                ],
-                followUp: { stepIndex: 2, triggerOption: "Sim", steps: [{ q: "Como foi a dor?", options: ["Leve", "Média", "Forte"] }] }
+                    { q: "Como estava o cocô?", options: [
+                        { icon: "🪨", label: "Duro", value: "Duro" },
+                        { icon: "💩", label: "Normal", value: "Normal" },
+                        { icon: "💧", label: "Mole", value: "Mole" }
+                    ]},
+                    { q: "Precisou fazer força?", options: [
+                        { icon: "😊", label: "Não precisou", value: "Não precisou" },
+                        { icon: "😐", label: "Um pouquinho", value: "Um pouquinho" },
+                        { icon: "😤", label: "Fiz bastante força", value: "Fiz bastante força" }
+                    ]},
+                    { q: "Sentiu dor?", options: [
+                        { icon: "😊", label: "Não", value: "Não" },
+                        { icon: "😧", label: "Um pouco", value: "Um pouco" },
+                        { icon: "😣", label: "Bastante", value: "Bastante" }
+                    ]},
+                    { q: "Onde foi?", options: [
+                        { icon: "🏠", label: "Casa", value: "Casa" },
+                        { icon: "🏫", label: "Escola", value: "Escola" },
+                        { icon: "🌳", label: "Passeio", value: "Passeio" },
+                        { icon: "📍", label: "Outro", value: "Outro" }
+                    ]}
+                ]
             },
             night: {
                 title: "Como foi a noite?", icon: "🌙", bg: "var(--night-bg)",
                 steps: [
-                    { q: "Acordou para fazer xixi?", options: ["Sim", "Não"] },
-                    { q: "Houve escape durante a noite?", options: ["Sim", "Não"] },
-                    { q: "Quer adicionar uma observação?", type: "textarea" }
-                ]
+                    { q: "Como foi a noite de {childName}?", options: [
+                        { icon: "🌟", label: "Noite seca", value: "Noite seca" },
+                        { icon: "👕", label: "Roupa úmida", value: "Roupa úmida" },
+                        { icon: "💧", label: "Cama molhada", value: "Cama molhada" },
+                        { icon: "⏰", label: "Acordou para urinar", value: "Acordou para urinar" },
+                        { icon: "🤷", label: "Não sei informar", value: "Não sei informar" }
+                    ]},
+                    { q: "Deseja acrescentar uma observação?", options: [
+                        { icon: "✅", label: "Sim", value: "Sim" },
+                        { icon: "⏭️", label: "Não", value: "Não" }
+                    ]}
+                ],
+                followUp: { stepIndex: 1, triggerOption: "Sim", steps: [{ q: "Observação", type: "textarea", optional: false }] }
             },
             escape: {
                 title: "Houve um escape?", icon: "⚠️", bg: "var(--escape-bg)",
@@ -2327,17 +2415,31 @@
             const container = document.getElementById('wizard-content');
 
             let html = `<div class="quiz-step active">`;
-            html += `<h2 class="quiz-question">${stepData.q}</h2>`;
+            
+            let questionText = stepData.q;
+            if (questionText.includes('{childName}')) {
+                const child = getActiveChild();
+                questionText = questionText.replace('{childName}', child ? child.name : 'a criança');
+            }
+
+            html += `<h2 class="quiz-question">${questionText}</h2>`;
 
             if (stepData.type === 'textarea') {
                 const val = wizardAnswers['q' + (currentStepIndex + 1)] || '';
-                html += `<textarea class="quiz-textarea" id="quiz-textarea-input" placeholder="Opcional..." oninput="onTextareaInput(this.value)">${val}</textarea>`;
+                html += `<textarea class="quiz-textarea" id="quiz-textarea-input" placeholder="Digite aqui..." oninput="onTextareaInput(this.value)">${val}</textarea>`;
             } else {
                 stepData.options.forEach((opt) => {
-                    const isSelected = wizardAnswers['q' + (currentStepIndex + 1)] === opt;
+                    const val = typeof opt === 'object' ? opt.value : opt;
+                    const label = typeof opt === 'object' ? opt.label : opt;
+                    const icon = typeof opt === 'object' ? opt.icon : '';
+                    
+                    const isSelected = wizardAnswers['q' + (currentStepIndex + 1)] === val;
                     html += `
-            <div class="quiz-option ${isSelected ? 'selected' : ''}" onclick="selectOption(this, '${opt}')">
-              <div class="quiz-option-text">${opt}</div>
+            <div class="quiz-option ${isSelected ? 'selected' : ''}" onclick="selectOption(this, '${val}')">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                ${icon ? `<span style="font-size: 20px;">${icon}</span>` : ''}
+                <div class="quiz-option-text">${label}</div>
+              </div>
             </div>
           `;
                 });
@@ -2352,7 +2454,7 @@
             document.getElementById('wizard-btn-next').innerText = isLastStep ? 'Salvar' : 'Avançar';
 
             // Validation
-            const isOptional = stepData.optional || stepData.type === 'textarea';
+            const isOptional = stepData.optional === true || (stepData.type === 'textarea' && stepData.optional !== false);
             const hasAnswer = !!wizardAnswers['q' + (currentStepIndex + 1)];
 
             document.getElementById('wizard-btn-next').disabled = !isOptional && !hasAnswer;
@@ -2361,6 +2463,13 @@
 
         function onTextareaInput(val) {
             wizardAnswers['q' + (currentStepIndex + 1)] = val;
+            
+            const stepData = dynamicSteps[currentStepIndex];
+            const isOptional = stepData.optional === true || (stepData.type === 'textarea' && stepData.optional !== false);
+            const hasAnswer = !!val.trim();
+            
+            document.getElementById('wizard-btn-next').disabled = !isOptional && !hasAnswer;
+            document.getElementById('wizard-btn-next').style.opacity = (!isOptional && !hasAnswer) ? '0.5' : '1';
         }
 
         function selectOption(el, val) {
@@ -2389,7 +2498,7 @@
 
         function wizardNext() {
             const stepData = dynamicSteps[currentStepIndex];
-            const isOptional = stepData.optional || stepData.type === 'textarea';
+            const isOptional = stepData.optional === true || (stepData.type === 'textarea' && stepData.optional !== false);
             if (!isOptional && !wizardAnswers['q' + (currentStepIndex + 1)]) return; // Validation
 
             // Check for follow up questions dynamically
@@ -2466,16 +2575,14 @@
         }
 
         function getSubtitleForEvent(evt) {
-            if (evt.type === 'pee') return evt.data.q2 ? `Volume ${evt.data.q2.toLowerCase()}` : '';
-            if (evt.type === 'water') return `${evt.data.q1}, ${evt.data.q2}`;
+            if (evt.type === 'pee') return evt.data.q3 ? `Quantidade ${evt.data.q3.toLowerCase()}` : '';
+            if (evt.type === 'water') return evt.data.q3 ? `${evt.data.q3} (${evt.data.q2.toLowerCase()})` : '';
             if (evt.type === 'poop') return evt.data.q1 ? `Aspecto ${evt.data.q1.toLowerCase()}` : '';
             if (evt.type === 'escape') return `${evt.data.q1}`;
-            if (evt.type === 'night') return `Acordou para xixi: ${evt.data.q1}`;
+            if (evt.type === 'night') return evt.data.q1 ? evt.data.q1 : '';
             if (evt.type === 'pain') return `Dor: ${evt.data.q2 || ''}`;
             return 'Registro completo';
         }
-
-        // --- APPOINTMENTS & CONSIDERATIONS LOGIC ---
         function openAptModal() {
             document.getElementById('new-apt-spec').value = "Pediatria";
             document.getElementById('new-apt-date').value = "";
@@ -2501,9 +2608,11 @@
                 return;
             }
 
+            const isAptInOnboarding = document.getElementById('screen-onboarding').classList.contains('active');
+
             appointments.push({
                 id: 'apt-' + Date.now(),
-                childId: appState.activeChildId,
+                childId: appState.activeChildId || null,
                 specialty: spec,
                 professionalName: prof || "Não informado",
                 date: date,
@@ -2515,7 +2624,17 @@
             });
 
             closeModals();
-            renderConsultations();
+            
+            if (isAptInOnboarding) {
+                const btn = document.getElementById('onboarding-btn-apt');
+                if (btn) {
+                    btn.innerText = "✓ Consulta Adicionada";
+                    btn.style.borderColor = "var(--primary)";
+                    btn.style.color = "var(--primary)";
+                }
+            } else {
+                renderConsultations();
+            }
         }
 
         function openConsidModal() {
@@ -2656,6 +2775,18 @@
 
                 document.getElementById('onboarding-summary-child').innerText = childName;
 
+                const dob = document.getElementById('onboarding-child-dob').value;
+                let ageStr = "Idade não informada";
+                if (dob) {
+                    const bdate = new Date(dob);
+                    const diff = Date.now() - (bdate.getTime() + bdate.getTimezoneOffset() * 60000);
+                    const ageDate = new Date(diff);
+                    const years = Math.abs(ageDate.getUTCFullYear() - 1970);
+                    if (years > 0) ageStr = years + (years === 1 ? ' ano' : ' anos');
+                    else ageStr = '< 1 ano';
+                }
+                document.getElementById('onboarding-summary-age').innerText = ageStr;
+
                 const goal = document.getElementById('onboarding-child-goal').value.trim();
                 if (goal) {
                     document.getElementById('onboarding-summary-goal-box').style.display = 'block';
@@ -2664,11 +2795,11 @@
                     document.getElementById('onboarding-summary-goal-box').style.display = 'none';
                 }
 
-                const apt = document.getElementById('onboarding-child-apt').value;
-                if (apt) {
+                const pendingApt = appointments.find(a => !a.childId);
+                if (pendingApt) {
                     document.getElementById('onboarding-summary-apt-box').style.display = 'block';
-                    const parts = apt.split('-');
-                    document.getElementById('onboarding-summary-apt').innerText = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                    const parts = pendingApt.date.split('-');
+                    document.getElementById('onboarding-summary-apt').innerText = `${parts[2]}/${parts[1]}/${parts[0]} - ${pendingApt.specialty}`;
                 } else {
                     document.getElementById('onboarding-summary-apt-box').style.display = 'none';
                 }
@@ -2693,31 +2824,11 @@
             }
         }
 
-        function calculateOnboardingAge() {
-            const dob = document.getElementById('onboarding-child-dob').value;
-            if (!dob) {
-                document.getElementById('onboarding-child-age').innerText = '';
-                document.getElementById('onboarding-summary-age').innerText = '';
-                return;
-            }
-            const birthDate = new Date(dob);
-            const today = new Date();
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const m = today.getMonth() - birthDate.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-                age--;
-            }
-            const ageStr = `${age} anos`;
-            document.getElementById('onboarding-child-age').innerText = ageStr;
-            document.getElementById('onboarding-summary-age').innerText = ageStr;
-        }
-
         function finishOnboarding() {
             const guardianName = document.getElementById('onboarding-guardian-name').value.trim();
             const childName = document.getElementById('onboarding-child-name').value.trim();
-            const ageStr = document.getElementById('onboarding-child-age').innerText || 'Sem idade informada';
+            const ageStr = document.getElementById('onboarding-summary-age').innerText || 'Sem idade informada';
             const goal = document.getElementById('onboarding-child-goal').value.trim();
-            const aptDate = document.getElementById('onboarding-child-apt').value;
 
             // 1 & 2 & 3. Create responsible and child, associate
             appState.currentResponsible = { id: 'resp-001', name: guardianName };
@@ -2747,20 +2858,11 @@
             }
 
             // 6. Appointment
-            if (aptDate) {
-                appointments.push({
-                    id: 'apt-' + Date.now(),
-                    childId: newChildId,
-                    specialty: 'Pediatria / Geral',
-                    professionalName: 'A definir',
-                    date: aptDate,
-                    time: '00:00',
-                    location: 'A definir',
-                    notes: '',
-                    status: 'UPCOMING',
-                    createdAt: new Date().toISOString()
-                });
-            }
+            appointments.forEach(a => {
+                if (!a.childId) {
+                    a.childId = newChildId;
+                }
+            });
 
             document.querySelector('.bottom-nav').style.display = 'flex';
 
