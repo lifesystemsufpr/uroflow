@@ -59,10 +59,10 @@
             --radius-pill: 9999px;
 
             /* Shadows */
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-            --shadow-primary: 0 10px 15px -3px rgba(0, 107, 112, 0.3);
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+            --shadow-md: 0 2px 4px 0 rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 8px 16px -4px rgba(0, 0, 0, 0.08);
+            --shadow-primary: 0 4px 12px rgba(0, 107, 112, 0.2);
         }
 
         * {
@@ -74,7 +74,7 @@
 
         body {
             background-color: var(--bg-color);
-            background-image: radial-gradient(circle at 0% 0%, #E6F3F4 0%, transparent 50%), radial-gradient(circle at 100% 100%, #E9D8FD 0%, transparent 50%);
+            background-image: radial-gradient(circle at 0% 0%, rgba(230, 243, 244, 0.7) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(233, 216, 253, 0.7) 0%, transparent 50%);
             color: var(--text-dark);
             height: 100vh;
             overflow: hidden;
@@ -134,12 +134,13 @@
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
+            opacity: 0.95;
             box-shadow: var(--shadow-primary);
         }
 
         .btn-primary:active {
-            transform: translateY(0);
+            opacity: 1;
+            transform: scale(0.98);
         }
 
         .btn-outline {
@@ -177,15 +178,14 @@
             background-color: var(--surface-solid);
             border-radius: var(--radius-lg);
             border: 1px solid var(--border);
-            padding: 24px;
-            box-shadow: var(--shadow-md);
-            transition: all 0.3s ease;
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
         }
 
         .card:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-lg);
-            border-color: rgba(0, 107, 112, 0.1);
+            box-shadow: var(--shadow-md);
+            border-color: rgba(0, 107, 112, 0.15);
         }
 
         .badge {
@@ -276,18 +276,29 @@
             font-size: 14px;
             cursor: pointer;
             transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
         }
 
         .nav-item:hover {
             background-color: var(--primary-light);
             color: var(--primary);
-            transform: translateX(4px);
         }
 
         .nav-item.active {
-            background: var(--primary-gradient);
-            color: white;
-            box-shadow: var(--shadow-sm);
+            background-color: var(--primary-light);
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: var(--primary);
         }
 
         .sidebar-footer {
@@ -359,13 +370,12 @@
             border: 1.5px solid var(--border);
             border-radius: var(--radius-pill);
             padding: 10px 20px;
-            width: 320px;
-            transition: all 0.3s ease;
+            width: 380px;
+            transition: all 0.2s ease;
         }
 
         .search-bar:focus-within {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-light);
             background: var(--surface-solid);
         }
 
@@ -377,6 +387,10 @@
             margin-left: 10px;
             font-size: 14px;
             color: var(--text-dark);
+        }
+        
+        .search-result:hover {
+            background-color: var(--primary-light);
         }
 
         .content-area {
@@ -630,9 +644,8 @@
         }
 
         .timeline-content:hover {
-            transform: translateX(4px);
-            box-shadow: var(--shadow-lg);
-            border-color: rgba(0, 107, 112, 0.1);
+            box-shadow: var(--shadow-md);
+            border-color: rgba(0, 107, 112, 0.15);
         }
 
         .timeline-header {
@@ -900,15 +913,58 @@
                     Dashboard
                 </div>
                 <div class="topbar-actions">
-                    <div class="search-bar">
-                        <span class="material-symbols-outlined" style="color: var(--text-light)">search</span>
-                        <input type="text" placeholder="Pesquisar paciente, prontuário...">
+                    <div class="search-bar-container" style="position: relative;">
+                        <div class="search-bar" id="global-search-input">
+                            <span class="material-symbols-outlined" style="color: var(--text-light)">search</span>
+                            <input type="text" id="main-search" placeholder="Pesquisar paciente, prontuário, ID..." onfocus="handleSearchFocus()" onblur="setTimeout(() => document.getElementById('search-results').style.display='none', 200)" oninput="handleSearchInput(this.value)">
+                        </div>
+                        <div id="search-results" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; width: 100%; background: var(--surface-solid); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); z-index: 100; overflow: hidden;">
+                            <div id="search-empty-state" style="padding: 24px; text-align: center; color: var(--text-light); font-size: 13px;">Digite para pesquisar</div>
+                            <div id="search-no-results" style="display: none; padding: 24px; text-align: center; color: var(--text-light); font-size: 13px;">Nenhum resultado encontrado</div>
+                            <div id="search-content" style="display: none;">
+                            <div style="padding: 12px 16px; font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; background: var(--bg-color);">Pacientes</div>
+                            <div class="search-result" style="padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-bottom: 1px solid var(--border);" onclick="openPatient('Ana Carolina Souza')">
+                                <div class="avatar" style="width: 32px; height: 32px; font-size: 12px;">AC</div>
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 600; color: var(--text-dark);">Ana Carolina Souza</div>
+                                    <div style="font-size: 12px; color: var(--text-light);">UF-000182 • 7 anos</div>
+                                </div>
+                            </div>
+                            <div style="padding: 12px 16px; font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; background: var(--bg-color);">Documentos</div>
+                            <div class="search-result" style="padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                                <span class="material-symbols-outlined" style="color: var(--ind-liquid);">description</span>
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 500; color: var(--text-dark);">Relatório_Urologia_Ago2026.pdf</div>
+                                    <div style="font-size: 12px; color: var(--text-light);">Ana Carolina Souza • 120 KB</div>
+                                </div>
+                            </div>
+                        </div>
+                            </div>
+                        </div>
+                    <div style="position: relative;">
+                        <button class="btn-icon" style="position: relative;" onclick="toggleNotifications()">
+                            <span class="material-symbols-outlined">notifications</span>
+                            <span style="position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: var(--ind-escape); border-radius: 50%;"></span>
+                        </button>
+                        <div id="notifications-popover" style="display: none; position: absolute; top: calc(100% + 8px); right: 0; width: 320px; background: var(--surface-solid); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); z-index: 100; overflow: hidden;">
+                            <div style="padding: 16px; border-bottom: 1px solid var(--border); font-weight: 700; color: var(--text-dark); font-size: 14px;">Notificações</div>
+                            <div style="padding: 12px 16px; display: flex; flex-direction: column; gap: 4px; border-bottom: 1px solid var(--border); cursor: pointer;" class="search-result">
+                                <div style="font-size: 13px; font-weight: 600; color: var(--text-dark);">Novo registro de escape</div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">Ana Carolina Souza</div>
+                                <div style="font-size: 11px; color: var(--text-light); margin-top: 2px;">há 15 min</div>
+                            </div>
+                            <div style="padding: 12px 16px; display: flex; flex-direction: column; gap: 4px; border-bottom: 1px solid var(--border); cursor: pointer;" class="search-result">
+                                <div style="font-size: 13px; font-weight: 600; color: var(--text-dark);">Consulta amanhã</div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">Lucas Almeida</div>
+                                <div style="font-size: 11px; color: var(--text-light); margin-top: 2px;">há 1 h</div>
+                            </div>
+                            <div style="padding: 12px 16px; display: flex; flex-direction: column; gap: 4px; cursor: pointer;" class="search-result">
+                                <div style="font-size: 13px; font-weight: 600; color: var(--text-dark);">Novo documento</div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">Sofia Martins</div>
+                                <div style="font-size: 11px; color: var(--text-light); margin-top: 2px;">há 2 h</div>
+                            </div>
+                        </div>
                     </div>
-                    <button class="btn-icon" style="position: relative;">
-                        <span class="material-symbols-outlined">notifications</span>
-                        <span
-                            style="position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: var(--ind-escape); border-radius: 50%;"></span>
-                    </button>
                 </div>
             </header>
 
@@ -917,79 +973,192 @@
 
                 <!-- DASHBOARD SCREEN -->
                 <section id="screen-dashboard" class="screen active">
-                    <h1 style="font-size: 28px; margin-bottom: 4px;">Bom dia, Dra. Mariana 👋</h1>
-                    <p>Veja o resumo do acompanhamento dos seus pacientes.</p>
+                    <h1 style="font-size: 28px; margin-bottom: 4px; letter-spacing: -0.5px;">Bom dia, Dra. Mariana</h1>
+                    <p style="font-size: 15px;">Veja o que merece sua atenção hoje.</p>
 
-                    <div class="stats-grid">
-                        <div class="card stat-card">
-                            <div class="title">Pacientes ativos</div>
-                            <div class="value">128</div>
-                        </div>
-                        <div class="card stat-card">
-                            <div class="title">Consultas hoje</div>
-                            <div class="value">7</div>
-                        </div>
-                        <div class="card stat-card">
-                            <div class="title">Acompanhamento pendente</div>
-                            <div class="value">12</div>
-                        </div>
-                        <div class="card stat-card">
-                            <div class="title">Alertas clínicos</div>
-                            <div class="value" style="color: var(--ind-escape);">5</div>
-                        </div>
-                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 32px; margin-top: 24px;">
+                            
+                            <!-- Stats Grid -->
+                            <div class="stats-grid" style="margin-top: 0; gap: 16px;">
+                                <div class="card stat-card" style="padding: 16px;">
+                                    <div class="title" style="margin-bottom: 4px;">Pacientes ativos</div>
+                                    <div style="display: flex; align-items: flex-end; gap: 12px;">
+                                        <div class="value">128</div>
+                                        <div style="color: var(--ind-good); font-weight: 600; font-size: 13px; margin-bottom: 6px; display: flex; align-items: center;"><span class="material-symbols-outlined" style="font-size: 16px;">trending_up</span> +4 este mês</div>
+                                    </div>
+                                </div>
+                                <div class="card stat-card" style="padding: 16px;">
+                                    <div class="title" style="margin-bottom: 4px;">Consultas hoje</div>
+                                    <div style="display: flex; align-items: flex-end; gap: 12px;">
+                                        <div class="value">7</div>
+                                        <div style="color: var(--text-secondary); font-weight: 500; font-size: 13px; margin-bottom: 6px;">2 próximas</div>
+                                    </div>
+                                </div>
+                                <div class="card stat-card" style="padding: 16px;">
+                                    <div class="title" style="margin-bottom: 4px;">Acompanhamentos</div>
+                                    <div style="display: flex; align-items: flex-end; gap: 12px;">
+                                        <div class="value">12</div>
+                                        <div style="color: var(--ind-escape); font-weight: 600; font-size: 13px; margin-bottom: 6px;">4 atrasados</div>
+                                    </div>
+                                </div>
+                                <div class="card stat-card" style="padding: 16px; background-color: var(--ind-bg-escape); border-color: rgba(229, 62, 62, 0.2);">
+                                    <div class="title" style="margin-bottom: 4px; color: var(--ind-escape);">Atenção</div>
+                                    <div style="display: flex; align-items: flex-end; gap: 12px;">
+                                        <div class="value" style="color: var(--ind-escape);">5</div>
+                                        <div style="color: var(--ind-escape); font-weight: 600; font-size: 13px; margin-bottom: 6px;">3 novos, 2 rev.</div>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px; margin-bottom: 16px;">
-                        <h2>Pacientes que precisam de atenção</h2>
-                        <button class="btn btn-outline" onclick="navigateTo('patients')">Ver todos</button>
-                    </div>
+                            <!-- Pacientes que precisam de atenção -->
+                            <div>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
+                                <div>
+                                    <h2 style="font-size: 18px; margin-bottom: 4px;">Pacientes que precisam de atenção</h2>
+                                    <p style="font-size: 13px;">Prioridades identificadas a partir dos registros recentes.</p>
+                                </div>
+                                <button class="btn btn-outline" style="padding: 8px 16px; font-size: 13px;" onclick="navigateTo('patients')">Ver todos</button>
+                            </div>
 
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Paciente</th>
-                                    <th>Idade</th>
-                                    <th>Última Atualização</th>
-                                    <th>Indicador</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr onclick="openPatient('Ana Carolina Souza')">
-                                    <td>
-                                        <div style="font-weight: 500;">Ana Carolina Souza</div>
-                                        <div class="text-sm" style="color: var(--text-light)">UF-000182</div>
-                                    </td>
-                                    <td>7 anos</td>
-                                    <td>Hoje, 09:15</td>
-                                    <td style="color: var(--ind-escape); font-weight: 500;">6 escapes nos últimos 7 dias
-                                    </td>
-                                    <td><span class="badge badge-warning">Atenção</span></td>
-                                </tr>
-                                <tr onclick="openPatient('Lucas Almeida')">
-                                    <td>
-                                        <div style="font-weight: 500;">Lucas Almeida</div>
-                                        <div class="text-sm" style="color: var(--text-light)">UF-000194</div>
-                                    </td>
-                                    <td>8 anos</td>
-                                    <td>Ontem, 20:30</td>
-                                    <td style="color: var(--ind-good); font-weight: 500;">Redução de escapes</td>
-                                    <td><span class="badge badge-success">Em evolução</span></td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div style="font-weight: 500;">Sofia Martins</div>
-                                        <div class="text-sm" style="color: var(--text-light)">UF-000210</div>
-                                    </td>
-                                    <td>5 anos</td>
-                                    <td>Há 8 dias</td>
-                                    <td style="color: var(--text-secondary);">Sem novos registros</td>
-                                    <td><span class="badge badge-neutral">Acompanhamento pendente</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                            <div class="table-container" style="margin-top: 0; box-shadow: none;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Paciente</th>
+                                            <th>Indicador</th>
+                                            <th>Tendência</th>
+                                            <th>Status</th>
+                                            <th style="text-align: right;">Ação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr onclick="openPatient('Ana Carolina Souza')">
+                                            <td>
+                                                <div style="display: flex; align-items: center; gap: 12px;">
+                                                    <div class="avatar" style="width: 36px; height: 36px; font-size: 13px;">AC</div>
+                                                    <div>
+                                                        <div style="font-weight: 600; color: var(--text-dark);">Ana Carolina Souza</div>
+                                                        <div class="text-sm" style="color: var(--text-light)">7 anos</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div style="font-weight: 500; font-size: 13px;">6 escapes</div>
+                                                <div class="text-sm" style="color: var(--text-light)">últimos 7 dias</div>
+                                            </td>
+                                            <td>
+                                                <div style="color: var(--ind-escape); font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 4px;"><span class="material-symbols-outlined" style="font-size: 16px;">trending_up</span> 20%</div>
+                                                <div class="text-sm" style="color: var(--text-light); margin-top: 2px;">vs. semana ant.</div>
+                                            </td>
+                                            <td>
+                                                <div style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; color: var(--ind-escape);">
+                                                    <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--ind-escape);"></span>
+                                                    Atenção
+                                                </div>
+                                            </td>
+                                            <td style="text-align: right;">
+                                                <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px; border-radius: var(--radius-sm);">Ver paciente</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div style="display: flex; align-items: center; gap: 12px;">
+                                                    <div class="avatar" style="width: 36px; height: 36px; font-size: 13px; background: var(--ind-bg-pee); color: var(--ind-pee);">LA</div>
+                                                    <div>
+                                                        <div style="font-weight: 600; color: var(--text-dark);">Lucas Almeida</div>
+                                                        <div class="text-sm" style="color: var(--text-light)">8 anos</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div style="font-weight: 500; font-size: 13px;">Sem atualização</div>
+                                                <div class="text-sm" style="color: var(--text-light)">há 8 dias</div>
+                                            </td>
+                                            <td>
+                                                <div style="color: var(--text-light); font-weight: 500; font-size: 13px;">-</div>
+                                            </td>
+                                            <td>
+                                                <div style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; color: var(--ind-pee);">
+                                                    <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--ind-pee);"></span>
+                                                    Moderada
+                                                </div>
+                                            </td>
+                                            <td style="text-align: right;">
+                                                <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px; border-radius: var(--radius-sm);">Notificar</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- Bottom Row -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: stretch;">
+                            
+                            <!-- Resumo de Evolução -->
+                            <div style="display: flex; flex-direction: column; height: 100%;">
+                                <h3 style="font-size: 15px; margin-bottom: 16px;">Resumo de evolução</h3>
+                                <div class="card" style="padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+                                        <div>
+                                            <div style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Escapes — últimos 30 dias</div>
+                                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                                                <div style="font-size: 24px; font-weight: 700;">12</div>
+                                                <div style="color: var(--ind-good); font-size: 13px; font-weight: 600; display: flex; align-items: center;"><span class="material-symbols-outlined" style="font-size: 16px;">trending_down</span> 40%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Mini Chart Mock -->
+                                    <div style="height: 60px; display: flex; align-items: flex-end; gap: 4px; position: relative;">
+                                        <div style="flex: 1; background: var(--ind-bg-escape); height: 80%; border-radius: 2px;"></div>
+                                        <div style="flex: 1; background: var(--ind-bg-escape); height: 90%; border-radius: 2px;"></div>
+                                        <div style="flex: 1; background: var(--ind-bg-escape); height: 60%; border-radius: 2px;"></div>
+                                        <div style="flex: 1; background: var(--ind-bg-escape); height: 40%; border-radius: 2px;"></div>
+                                        <div style="flex: 1; background: var(--ind-bg-escape); height: 30%; border-radius: 2px;"></div>
+                                        <div style="flex: 1; background: var(--ind-bg-escape); height: 45%; border-radius: 2px;"></div>
+                                        <div style="flex: 1; background: var(--ind-escape); height: 25%; border-radius: 2px;"></div>
+                                        <!-- Trendline SVG -->
+                                        <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: visible; z-index: 2;">
+                                            <path d="M 5,20 L 20,10 L 35,40 L 50,60 L 65,70 L 80,55 L 95,75" fill="none" stroke="var(--ind-good)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </div>
+                                    <div style="font-size: 11px; color: var(--text-light); text-align: right; margin-top: 8px;">Comparado aos 30 dias anteriores</div>
+                                </div>
+                            </div>
+
+                            <!-- Atividade Recente -->
+                            <div style="display: flex; flex-direction: column; height: 100%;">
+                                <h3 style="font-size: 15px; margin-bottom: 16px;">Atividade recente</h3>
+                                <div class="card" style="padding: 16px; box-shadow: none; flex: 1;">
+                                    <div style="display: flex; flex-direction: column;">
+                                        <div class="search-result" style="display: flex; gap: 16px; padding: 12px; border-radius: var(--radius-sm); cursor: pointer; margin: -12px -12px 0 -12px;" onclick="openPatient('Ana Carolina Souza')">
+                                            <div style="width: 2px; background: var(--ind-escape); border-radius: 2px;"></div>
+                                            <div style="flex: 1;">
+                                                <div style="font-size: 13px; font-weight: 600; color: var(--text-dark);">Ana Carolina Souza</div>
+                                                <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">Novo registro de escape</div>
+                                                <div style="color: var(--text-light); font-size: 11px; margin-top: 4px;">Hoje, 09:15</div>
+                                            </div>
+                                        </div>
+                                        <div class="search-result" style="display: flex; gap: 16px; padding: 12px; border-radius: var(--radius-sm); cursor: pointer; margin: 0 -12px;" onclick="openPatient('Lucas Almeida')">
+                                            <div style="width: 2px; background: var(--ind-liquid); border-radius: 2px;"></div>
+                                            <div style="flex: 1;">
+                                                <div style="font-size: 13px; font-weight: 600; color: var(--text-dark);">Lucas Almeida</div>
+                                                <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">Documento adicionado</div>
+                                                <div style="color: var(--text-light); font-size: 11px; margin-top: 4px;">Hoje, 08:42</div>
+                                            </div>
+                                        </div>
+                                        <div class="search-result" style="display: flex; gap: 16px; padding: 12px; border-radius: var(--radius-sm); cursor: pointer; margin: 0 -12px -12px -12px;" onclick="navigateTo('agenda')">
+                                            <div style="width: 2px; background: var(--primary); border-radius: 2px;"></div>
+                                            <div style="flex: 1;">
+                                                <div style="font-size: 13px; font-weight: 600; color: var(--text-dark);">Sofia Martins</div>
+                                                <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">Consulta agendada</div>
+                                                <div style="color: var(--text-light); font-size: 11px; margin-top: 4px;">Hoje, 08:10</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </section>
 
@@ -1037,28 +1206,32 @@
 
                 <!-- PATIENT PROFILE SCREEN -->
                 <section id="screen-patient-profile" class="screen">
-                    <div class="patient-header">
-                        <div class="patient-info">
-                            <div class="avatar patient-avatar"
-                                style="background: var(--primary-light); color: var(--primary);">AC</div>
+                    <div class="patient-header" style="display: grid; grid-template-columns: auto 1fr auto; gap: 32px; box-shadow: none;">
+                        
+                        <div class="avatar patient-avatar" style="background: var(--primary-light); color: var(--primary); font-size: 28px;">AC</div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(3, auto); gap: 40px; align-items: center;">
                             <div>
-                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;">
-                                    <h1 id="profile-name">Ana Carolina Souza</h1>
-                                    <span class="badge badge-primary">Em acompanhamento</span>
-                                </div>
-                                <div style="display: flex; gap: 24px; color: var(--text-secondary); font-size: 14px;">
-                                    <span><strong style="color: var(--text-dark)">ID:</strong> UF-000182</span>
-                                    <span><strong style="color: var(--text-dark)">Idade:</strong> 7 anos</span>
-                                    <span><strong style="color: var(--text-dark)">Responsável:</strong> Mariana Souza
-                                        (Mãe)</span>
-                                </div>
+                                <div style="font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Identificação</div>
+                                <h1 id="profile-name" style="font-size: 22px; margin-bottom: 4px;">Ana Carolina Souza</h1>
+                                <div style="font-size: 13px; color: var(--text-secondary);">7 anos • ID: UF-000182</div>
+                            </div>
+                            <div style="padding-left: 40px; border-left: 1px solid var(--border);">
+                                <div style="font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Situação</div>
+                                <span class="badge badge-primary">Em acompanhamento</span>
+                            </div>
+                            <div style="padding-left: 40px; border-left: 1px solid var(--border);">
+                                <div style="font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Contexto familiar</div>
+                                <div style="font-size: 14px; font-weight: 600; color: var(--text-dark);">Mariana Souza</div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">Mãe</div>
                             </div>
                         </div>
-                        <div class="patient-actions">
-                            <button class="btn btn-outline" onclick="navigateTo('assistant')">
-                                <span class="material-symbols-outlined" style="font-size: 20px;">smart_toy</span> IA
+
+                        <div class="patient-actions" style="flex-direction: column; justify-content: center; align-items: flex-end; border-left: 1px solid var(--border); padding-left: 32px;">
+                            <button class="btn btn-primary" style="width: 100%;">Nova anotação</button>
+                            <button class="btn btn-outline" style="width: 100%;" onclick="navigateTo('assistant')">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">smart_toy</span> Assistente IA
                             </button>
-                            <button class="btn btn-primary">Nova anotação</button>
                         </div>
                     </div>
 
@@ -1074,101 +1247,133 @@
 
                     <!-- OVERVIEW TAB -->
                     <div id="tab-overview" class="tab-content active">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                            <h3>Últimos 7 dias</h3>
-                            <div
-                                style="display: flex; align-items: center; gap: 8px; color: var(--ind-good); font-size: 14px; font-weight: 500;">
-                                <span class="material-symbols-outlined" style="font-size: 20px;">trending_down</span>
-                                Escapes ↓ 40% vs. período anterior
-                            </div>
-                        </div>
-                        <div class="stats-grid" style="margin-top: 0; margin-bottom: 32px;">
-                            <div class="card stat-card" style="padding: 16px;">
-                                <div class="title" style="display: flex; align-items: center; gap: 8px;"><span
-                                        class="material-symbols-outlined"
-                                        style="color: var(--ind-pee); font-size: 18px;">water_drop</span> Xixis</div>
-                                <div class="value">42</div>
-                            </div>
-                            <div class="card stat-card"
-                                style="padding: 16px; border-color: var(--ind-escape); background: var(--ind-bg-escape);">
-                                <div class="title"
-                                    style="display: flex; align-items: center; gap: 8px; color: var(--ind-escape);">
-                                    <span class="material-symbols-outlined" style="font-size: 18px;">warning</span>
-                                    Escapes</div>
-                                <div class="value" style="color: var(--ind-escape);">3</div>
-                            </div>
-                            <div class="card stat-card" style="padding: 16px;">
-                                <div class="title" style="display: flex; align-items: center; gap: 8px;"><span
-                                        class="material-symbols-outlined"
-                                        style="color: var(--ind-poop); font-size: 18px;">spa</span> Evacuações</div>
-                                <div class="value">14</div>
-                            </div>
-                            <div class="card stat-card" style="padding: 16px;">
-                                <div class="title" style="display: flex; align-items: center; gap: 8px;"><span
-                                        class="material-symbols-outlined"
-                                        style="color: var(--ind-liquid); font-size: 18px;">local_drink</span> Líquidos
-                                </div>
-                                <div class="value">1.850 <span
-                                        style="font-size: 14px; font-weight: 400; color: var(--text-secondary)">ml/dia</span>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+                            <div class="card" style="grid-column: span 4; background-color: var(--surface-solid); border-left: 4px solid var(--primary); padding: 20px;">
+                                <h3 style="font-size: 16px; margin-bottom: 16px;">Resumo do acompanhamento</h3>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 24px;">
+                                    <div>
+                                        <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Status atual</div>
+                                        <div style="font-size: 14px; font-weight: 500; color: var(--text-dark); margin-top: 4px;">Em acompanhamento ativo</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Ponto de atenção</div>
+                                        <div style="font-size: 14px; font-weight: 500; color: var(--ind-escape); margin-top: 4px; display: flex; align-items: center; gap: 4px;"><span class="material-symbols-outlined" style="font-size: 16px;">warning</span> Escapes noturnos</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Tendência (7d)</div>
+                                        <div style="font-size: 14px; font-weight: 500; color: var(--ind-good); margin-top: 4px; display: flex; align-items: center; gap: 4px;"><span class="material-symbols-outlined" style="font-size: 16px;">trending_down</span> Redução de escapes</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Última atualização</div>
+                                        <div style="font-size: 14px; font-weight: 500; color: var(--text-dark); margin-top: 4px;">Hoje, 09:15</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <h3>Evolução Recente (Escapes)</h3>
-                        <div class="card chart-container" style="height: 250px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h3 style="font-size: 16px;">Indicadores Clínicos (Últimos 7 dias)</h3>
+                        </div>
+                        
+                        <div class="stats-grid" style="margin-top: 0; margin-bottom: 32px;">
+                            <div class="card stat-card" style="padding: 20px;">
+                                <div class="title" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;"><span class="material-symbols-outlined" style="color: var(--ind-pee); font-size: 18px;">water_drop</span> Xixis</div>
+                                </div>
+                                <div style="display: flex; align-items: flex-end; gap: 12px;">
+                                    <div class="value">42</div>
+                                    <div style="font-weight: 600; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;">6/dia média</div>
+                                </div>
+                            </div>
+                            <div class="card stat-card" style="padding: 20px; border-color: rgba(229, 62, 62, 0.2);">
+                                <div class="title" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; color: var(--ind-escape);">
+                                    <div style="display: flex; align-items: center; gap: 8px;"><span class="material-symbols-outlined" style="font-size: 18px;">warning</span> Escapes</div>
+                                </div>
+                                <div style="display: flex; align-items: flex-end; gap: 12px;">
+                                    <div class="value" style="color: var(--ind-escape);">3</div>
+                                    <div style="color: var(--ind-good); font-weight: 600; font-size: 13px; margin-bottom: 6px; display: flex; align-items: center;"><span class="material-symbols-outlined" style="font-size: 16px;">trending_down</span> 40%</div>
+                                </div>
+                            </div>
+                            <div class="card stat-card" style="padding: 20px;">
+                                <div class="title" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;"><span class="material-symbols-outlined" style="color: var(--ind-poop); font-size: 18px;">spa</span> Evacuações</div>
+                                </div>
+                                <div style="display: flex; align-items: flex-end; gap: 12px;">
+                                    <div class="value">14</div>
+                                    <div style="font-weight: 600; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;">2/dia média</div>
+                                </div>
+                            </div>
+                            <div class="card stat-card" style="padding: 20px;">
+                                <div class="title" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;"><span class="material-symbols-outlined" style="color: var(--ind-liquid); font-size: 18px;">local_drink</span> Líquidos</div>
+                                </div>
+                                <div style="display: flex; align-items: flex-end; gap: 12px;">
+                                    <div class="value">1.850<span style="font-size: 16px; font-weight: 600; color: var(--text-secondary)">ml</span></div>
+                                    <div style="font-weight: 600; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;">média/dia</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 style="font-size: 16px;">Evolução Recente (Escapes)</h3>
+                        <div class="card chart-container" style="height: 250px; box-shadow: none;">
                             <canvas id="overviewChart"></canvas>
                         </div>
                     </div>
 
                     <!-- DIARY TAB -->
                     <div id="tab-diary" class="tab-content">
-                        <div style="display: flex; gap: 12px; margin-bottom: 24px;">
-                            <button class="btn btn-outline" style="background: var(--surface);">Todos</button>
-                            <button class="btn btn-outline"
-                                style="background: var(--ind-bg-pee); border-color: var(--ind-pee); color: var(--ind-pee);">Xixi</button>
-                            <button class="btn btn-outline"
-                                style="background: var(--ind-bg-liquid); border-color: var(--ind-liquid); color: var(--ind-liquid);">Líquido</button>
-                            <button class="btn btn-outline"
-                                style="background: var(--ind-bg-escape); border-color: var(--ind-escape); color: var(--ind-escape);">Escape</button>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                            <div style="display: flex; gap: 12px;">
+                                <button class="btn btn-outline" style="background: var(--surface-solid); font-weight: 600;">Todos os registros</button>
+                                <button class="btn btn-outline" style="color: var(--ind-pee); border-color: transparent; background: transparent;">Apenas Xixi</button>
+                                <button class="btn btn-outline" style="color: var(--ind-liquid); border-color: transparent; background: transparent;">Apenas Líquidos</button>
+                                <button class="btn btn-outline" style="color: var(--ind-escape); border-color: transparent; background: transparent;">Apenas Escapes</button>
+                            </div>
+                            <button class="btn btn-primary"><span class="material-symbols-outlined" style="font-size: 18px;">download</span> Exportar Diário</button>
                         </div>
 
-                        <h4 style="margin-bottom: 16px; color: var(--text-light);">Hoje</h4>
-                        <div class="timeline">
-                            <div class="timeline-item">
-                                <div class="timeline-dot escape"></div>
-                                <div class="timeline-content" style="border-left: 4px solid var(--ind-escape);">
-                                    <div class="timeline-header">
-                                        <span class="timeline-time">14:30</span>
-                                        <span class="timeline-type"><span class="material-symbols-outlined"
-                                                style="color: var(--ind-escape)">warning</span> Escape</span>
+                        <h4 style="margin-bottom: 16px; color: var(--text-dark); font-size: 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">Hoje, 28 de Agosto</h4>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 0;">
+                            <!-- Event -->
+                            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border);">
+                                <div style="color: var(--text-secondary); font-size: 13px; font-weight: 600; text-align: right; padding-top: 2px;">14:30</div>
+                                <div>
+                                    <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; background: var(--ind-bg-escape); color: var(--ind-escape); border-radius: 4px; font-size: 12px; font-weight: 600; margin-bottom: 8px;">
+                                        <span class="material-symbols-outlined" style="font-size: 14px;">warning</span> Escape
                                     </div>
-                                    <p><strong>Local:</strong> Escola</p>
-                                    <p><strong>Percepção prévia:</strong> Não</p>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 13px;">
+                                        <div><span style="color: var(--text-light);">Local:</span> <span style="font-weight: 500; color: var(--text-dark);">Escola</span></div>
+                                        <div><span style="color: var(--text-light);">Percepção prévia:</span> <span style="font-weight: 500; color: var(--text-dark);">Não</span></div>
+                                        <div style="grid-column: span 2;"><span style="color: var(--text-light);">Observação:</span> <span style="font-weight: 500; color: var(--text-dark);">Aconteceu durante o recreio.</span></div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="timeline-item">
-                                <div class="timeline-dot pee"></div>
-                                <div class="timeline-content">
-                                    <div class="timeline-header">
-                                        <span class="timeline-time">12:50</span>
-                                        <span class="timeline-type"><span class="material-symbols-outlined"
-                                                style="color: var(--ind-pee)">water_drop</span> Xixi</span>
+                            <!-- Event -->
+                            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border);">
+                                <div style="color: var(--text-secondary); font-size: 13px; font-weight: 600; text-align: right; padding-top: 2px;">12:50</div>
+                                <div>
+                                    <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; background: var(--ind-bg-pee); color: var(--ind-pee); border-radius: 4px; font-size: 12px; font-weight: 600; margin-bottom: 8px;">
+                                        <span class="material-symbols-outlined" style="font-size: 14px;">water_drop</span> Xixi
                                     </div>
-                                    <p><strong>Volume:</strong> Grande</p>
-                                    <p><strong>Vontade:</strong> Normal</p>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 13px;">
+                                        <div><span style="color: var(--text-light);">Volume:</span> <span style="font-weight: 500; color: var(--text-dark);">Grande</span></div>
+                                        <div><span style="color: var(--text-light);">Vontade:</span> <span style="font-weight: 500; color: var(--text-dark);">Normal</span></div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="timeline-item">
-                                <div class="timeline-dot liquid"></div>
-                                <div class="timeline-content">
-                                    <div class="timeline-header">
-                                        <span class="timeline-time">10:20</span>
-                                        <span class="timeline-type"><span class="material-symbols-outlined"
-                                                style="color: var(--ind-liquid)">local_drink</span> Líquido</span>
+                            <!-- Event -->
+                            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border);">
+                                <div style="color: var(--text-secondary); font-size: 13px; font-weight: 600; text-align: right; padding-top: 2px;">10:20</div>
+                                <div>
+                                    <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; background: var(--ind-bg-liquid); color: var(--ind-liquid); border-radius: 4px; font-size: 12px; font-weight: 600; margin-bottom: 8px;">
+                                        <span class="material-symbols-outlined" style="font-size: 14px;">local_drink</span> Líquido
                                     </div>
-                                    <p><strong>Tipo:</strong> Água</p>
-                                    <p><strong>Quantidade:</strong> 200 ml</p>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 13px;">
+                                        <div><span style="color: var(--text-light);">Tipo:</span> <span style="font-weight: 500; color: var(--text-dark);">Água</span></div>
+                                        <div><span style="color: var(--text-light);">Quantidade:</span> <span style="font-weight: 500; color: var(--text-dark);">200 ml</span></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1176,21 +1381,34 @@
 
                     <!-- EVOLUTION TAB -->
                     <div id="tab-evolution" class="tab-content">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                            <select class="btn btn-outline" style="background: var(--surface);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                            <h3 style="font-size: 16px;">Análise de Tendências</h3>
+                            <select class="btn btn-outline" style="background: transparent;">
                                 <option>Últimos 30 dias</option>
                                 <option>Últimos 90 dias</option>
                                 <option>Últimos 6 meses</option>
                             </select>
                         </div>
+                        
+                        <div class="card" style="margin-bottom: 24px; padding: 20px; background-color: var(--surface-solid); border-left: 4px solid var(--primary);">
+                            <div style="display: flex; align-items: flex-start; gap: 12px;">
+                                <span class="material-symbols-outlined" style="color: var(--primary);">lightbulb</span>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Insights Clínicos (IA)</div>
+                                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+                                        Houve uma <strong>redução de 40% na frequência de escapes</strong> nos últimos 30 dias. A ingestão hídrica noturna (após 19h) foi reduzida de 350ml para 100ml em média, correlacionando-se com a melhora do quadro. Padrão de evacuação permanece regular.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="charts-grid">
-                            <div class="card">
-                                <h3 style="margin-bottom: 16px;">Frequência Urinária</h3>
+                            <div class="card" style="box-shadow: none; border-color: var(--border);">
+                                <h3 style="margin-bottom: 16px; font-size: 14px; color: var(--text-secondary);">Frequência Urinária</h3>
                                 <canvas id="chartFreq"></canvas>
                             </div>
-                            <div class="card">
-                                <h3 style="margin-bottom: 16px;">Ingestão Hídrica (ml)</h3>
+                            <div class="card" style="box-shadow: none; border-color: var(--border);">
+                                <h3 style="margin-bottom: 16px; font-size: 14px; color: var(--text-secondary);">Ingestão Hídrica (ml)</h3>
                                 <canvas id="chartWater"></canvas>
                             </div>
                         </div>
@@ -1198,100 +1416,79 @@
 
                     <!-- TREATMENT TAB -->
                     <div id="tab-treatment" class="tab-content">
-                        <div class="card" style="margin-bottom: 24px;">
-                            <h3 style="margin-bottom: 16px;">Conduta Atual</h3>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                        <div class="card" style="margin-bottom: 32px; box-shadow: none; border-left: 4px solid var(--primary);">
+                            <h3 style="font-size: 16px; margin-bottom: 16px;">Conduta Atual</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
                                 <div>
-                                    <p
-                                        style="color: var(--text-light); font-size: 12px; font-weight: 600; text-transform: uppercase;">
-                                        Objetivo Terapêutico</p>
-                                    <p style="font-weight: 500; color: var(--text-dark); margin-top: 4px;">Reduzir
-                                        escapes noturnos e melhorar regularidade miccional.</p>
+                                    <p style="color: var(--text-light); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Objetivo Terapêutico</p>
+                                    <p style="font-weight: 500; color: var(--text-dark); font-size: 14px; line-height: 1.5;">Reduzir escapes noturnos e melhorar regularidade miccional diurna.</p>
                                 </div>
                                 <div>
-                                    <p
-                                        style="color: var(--text-light); font-size: 12px; font-weight: 600; text-transform: uppercase;">
-                                        Orientações</p>
-                                    <ul
-                                        style="margin-top: 4px; padding-left: 20px; font-size: 14px; color: var(--text-secondary);">
-                                        <li>Restrição hídrica após 19h</li>
-                                        <li>Ida programada ao banheiro a cada 2h</li>
+                                    <p style="color: var(--text-light); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Orientações Vigentes</p>
+                                    <ul style="padding-left: 20px; font-size: 14px; color: var(--text-dark); line-height: 1.6;">
+                                        <li>Restrição hídrica vigorosa após as 19h.</li>
+                                        <li>Ida programada ao banheiro a cada 2h durante o período escolar.</li>
+                                        <li>Manter registro diário para reavaliação.</li>
                                     </ul>
                                 </div>
                             </div>
                         </div>
 
-                        <h3>Histórico de Tratamento</h3>
-                        <div class="timeline">
-                            <div class="timeline-item">
-                                <div class="timeline-dot" style="background: var(--text-secondary);"></div>
-                                <div class="timeline-content">
-                                    <div class="timeline-header">
-                                        <span class="timeline-time">28/08/2026</span>
-                                        <span class="timeline-type">Reavaliação</span>
-                                    </div>
-                                    <p>Paciente apresentou redução de escapes. Mantida a conduta atual.</p>
-                                </div>
+                        <h3 style="font-size: 16px; margin-bottom: 16px;">Histórico de Tratamento</h3>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 0; border-left: 2px solid var(--border); margin-left: 8px;">
+                            <div style="position: relative; padding: 0 0 24px 24px;">
+                                <div style="position: absolute; left: -7px; top: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); border: 2px solid var(--text-light);"></div>
+                                <div style="font-size: 12px; color: var(--text-light); font-weight: 600; margin-bottom: 4px;">28/08/2026 • Reavaliação</div>
+                                <div style="font-size: 14px; color: var(--text-dark);">Paciente apresentou redução significativa de escapes. Mantida a conduta atual sem introdução medicamentosa.</div>
                             </div>
-                            <div class="timeline-item">
-                                <div class="timeline-dot" style="background: var(--primary);"></div>
-                                <div class="timeline-content">
-                                    <div class="timeline-header">
-                                        <span class="timeline-time">12/08/2026</span>
-                                        <span class="timeline-type">Tratamento iniciado</span>
-                                    </div>
-                                    <p>Início do monitoramento de diário miccional. Foco em ingestão hídrica.</p>
-                                </div>
+                            <div style="position: relative; padding: 0 0 24px 24px;">
+                                <div style="position: absolute; left: -7px; top: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); border: 2px solid var(--primary);"></div>
+                                <div style="font-size: 12px; color: var(--text-light); font-weight: 600; margin-bottom: 4px; color: var(--primary);">12/08/2026 • Tratamento inicial</div>
+                                <div style="font-size: 14px; color: var(--text-dark);">Início do monitoramento via diário miccional. Foco na restrição hídrica noturna e educação uroterápica básica.</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- APPOINTMENTS TAB -->
                     <div id="tab-appointments" class="tab-content">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                            <h3>Histórico de Consultas</h3>
-                            <button class="btn btn-primary"><span class="material-symbols-outlined"
-                                    style="font-size: 20px;">add</span> Nova Consulta</button>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                            <h3 style="font-size: 16px;">Consultas</h3>
+                            <button class="btn btn-primary"><span class="material-symbols-outlined" style="font-size: 18px;">add</span> Agendar</button>
                         </div>
 
-                        <div class="table-container" style="margin-top: 0;">
+                        <div class="table-container" style="box-shadow: none; border-color: var(--border);">
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Data</th>
-                                        <th>Especialidade</th>
+                                        <th>Data / Hora</th>
                                         <th>Profissional</th>
-                                        <th>Motivo / Observação</th>
-                                        <th>Status</th>
+                                        <th>Especialidade</th>
+                                        <th>Motivo / Resumo</th>
+                                        <th style="text-align: right;">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td><strong>28/08/2026</strong><br><span class="text-sm text-light">14:00</span>
-                                        </td>
-                                        <td>Urologia Pediátrica</td>
+                                        <td><div style="font-weight: 600;">15/09/2026</div><div style="font-size: 12px; color: var(--text-light);">10:00</div></td>
                                         <td>Dr. Renato Silva</td>
-                                        <td>Acompanhamento de rotina.<br><span class="text-sm text-light">Paciente
-                                                apresentou redução de escapes.</span></td>
-                                        <td><span class="badge badge-success">Realizada</span></td>
+                                        <td><span style="font-size: 13px; color: var(--text-secondary);">Urologia Pediátrica</span></td>
+                                        <td>Retorno programado para reavaliação do diário.</td>
+                                        <td style="text-align: right;"><span class="badge badge-primary">Agendada</span></td>
                                     </tr>
                                     <tr>
-                                        <td><strong>12/08/2026</strong><br><span class="text-sm text-light">09:30</span>
-                                        </td>
-                                        <td>Pediatria Geral</td>
+                                        <td><div style="font-weight: 600;">28/08/2026</div><div style="font-size: 12px; color: var(--text-light);">14:00</div></td>
+                                        <td>Dr. Renato Silva</td>
+                                        <td><span style="font-size: 13px; color: var(--text-secondary);">Urologia Pediátrica</span></td>
+                                        <td>Acompanhamento de rotina. Melhora clínica.</td>
+                                        <td style="text-align: right;"><span class="badge badge-success" style="background: transparent; border: 1px solid var(--ind-good); color: var(--ind-good);">Realizada</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><div style="font-weight: 600;">12/08/2026</div><div style="font-size: 12px; color: var(--text-light);">09:30</div></td>
                                         <td>Dra. Mariana Costa</td>
-                                        <td>Queixa inicial de escapes noturnos.<br><span
-                                                class="text-sm text-light">Iniciado tratamento e diário.</span></td>
-                                        <td><span class="badge badge-success">Realizada</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>15/09/2026</strong><br><span class="text-sm text-light">10:00</span>
-                                        </td>
-                                        <td>Urologia Pediátrica</td>
-                                        <td>Dr. Renato Silva</td>
-                                        <td>Retorno programado.</td>
-                                        <td><span class="badge badge-primary">Agendada</span></td>
+                                        <td><span style="font-size: 13px; color: var(--text-secondary);">Pediatria Geral</span></td>
+                                        <td>Queixa inicial de escapes noturnos.</td>
+                                        <td style="text-align: right;"><span class="badge badge-success" style="background: transparent; border: 1px solid var(--ind-good); color: var(--ind-good);">Realizada</span></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1300,98 +1497,93 @@
 
                     <!-- NOTES TAB -->
                     <div id="tab-notes" class="tab-content">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                            <h3>Anotações Clínicas</h3>
-                            <button class="btn btn-primary"><span class="material-symbols-outlined"
-                                    style="font-size: 20px;">add</span> Nova Anotação</button>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                            <h3 style="font-size: 16px;">Anotações da Equipe</h3>
+                            <button class="btn btn-primary"><span class="material-symbols-outlined" style="font-size: 18px;">add</span> Adicionar Anotação</button>
                         </div>
 
                         <div style="display: flex; flex-direction: column; gap: 16px;">
-                            <div class="card" style="padding: 16px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span class="badge badge-primary">Evolução</span>
-                                        <span style="font-weight: 600;">Melhora no quadro noturno</span>
+                            <div class="card" style="padding: 20px; box-shadow: none; border-color: var(--border);">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                            <span class="badge badge-primary">Evolução</span>
+                                            <span style="font-weight: 600; font-size: 15px; color: var(--text-dark);">Melhora no quadro noturno</span>
+                                        </div>
+                                        <div style="font-size: 12px; color: var(--text-light);">28/08/2026 às 14:45 • Dra. Mariana Costa (Pediatra)</div>
                                     </div>
-                                    <span class="text-sm" style="color: var(--text-light)">28/08/2026 • Dra. Mariana
-                                        Costa</span>
+                                    <button class="btn-icon"><span class="material-symbols-outlined" style="font-size: 18px;">more_vert</span></button>
                                 </div>
-                                <p>Mãe relata que nas últimas duas semanas a criança acordou seca na maioria dos dias.
-                                    Vamos manter a restrição hídrica noturna e reavaliar no retorno com o urologista.
-                                </p>
+                                <p style="font-size: 14px; color: var(--text-dark); line-height: 1.6;">Mãe relata que nas últimas duas semanas a criança acordou seca na maioria dos dias. Vamos manter a restrição hídrica noturna e reavaliar no retorno com o urologista.</p>
                             </div>
 
-                            <div class="card" style="padding: 16px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span class="badge badge-warning">Observação</span>
-                                        <span style="font-weight: 600;">Resistência a beber água na escola</span>
+                            <div class="card" style="padding: 20px; box-shadow: none; border-color: var(--border);">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                            <span class="badge badge-warning" style="background: var(--ind-bg-escape); color: var(--ind-escape);">Observação</span>
+                                            <span style="font-weight: 600; font-size: 15px; color: var(--text-dark);">Resistência a beber água na escola</span>
+                                        </div>
+                                        <div style="font-size: 12px; color: var(--text-light);">15/08/2026 às 10:15 • Dra. Mariana Costa (Pediatra)</div>
                                     </div>
-                                    <span class="text-sm" style="color: var(--text-light)">15/08/2026 • Dra. Mariana
-                                        Costa</span>
+                                    <button class="btn-icon"><span class="material-symbols-outlined" style="font-size: 18px;">more_vert</span></button>
                                 </div>
-                                <p>Paciente relata vergonha de pedir para ir ao banheiro na escola, o que a faz prender
-                                    a urina e evitar beber água. Orientada a conversar com a professora.</p>
+                                <p style="font-size: 14px; color: var(--text-dark); line-height: 1.6;">Paciente relata vergonha de pedir para ir ao banheiro na escola, o que a faz prender a urina e evitar beber água. Orientada a conversar com a professora.</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- DOCUMENTS TAB -->
                     <div id="tab-documents" class="tab-content">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                            <h3>Documentos e Anexos</h3>
-                            <button class="btn btn-primary"><span class="material-symbols-outlined"
-                                    style="font-size: 20px;">upload</span> Adicionar Documento</button>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                            <h3 style="font-size: 16px;">Documentos e Exames</h3>
+                            <button class="btn btn-primary"><span class="material-symbols-outlined" style="font-size: 18px;">upload</span> Enviar Arquivo</button>
                         </div>
 
-                        <div class="table-container" style="margin-top: 0;">
+                        <div class="table-container" style="box-shadow: none; border-color: var(--border);">
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Nome do Arquivo</th>
-                                        <th>Tipo</th>
-                                        <th>Data</th>
+                                        <th>Arquivo</th>
+                                        <th>Categoria</th>
+                                        <th>Data do Envio</th>
                                         <th>Tamanho</th>
-                                        <th>Ações</th>
+                                        <th style="text-align: right;">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
                                         <td>
-                                            <div style="display: flex; align-items: center; gap: 8px;">
-                                                <span class="material-symbols-outlined"
-                                                    style="color: var(--primary);">picture_as_pdf</span>
-                                                <span style="font-weight: 500;">Relatório_Urologia_Ago2026.pdf</span>
+                                            <div style="display: flex; align-items: center; gap: 12px;">
+                                                <div style="width: 32px; height: 32px; border-radius: 4px; background: rgba(229, 62, 62, 0.1); color: var(--ind-escape); display: flex; align-items: center; justify-content: center;">
+                                                    <span class="material-symbols-outlined" style="font-size: 18px;">picture_as_pdf</span>
+                                                </div>
+                                                <span style="font-weight: 500; color: var(--text-dark);">Relatório_Urologia_Ago2026.pdf</span>
                                             </div>
                                         </td>
-                                        <td>Relatório</td>
-                                        <td>28/08/2026</td>
-                                        <td>1.2 MB</td>
-                                        <td>
-                                            <button class="btn-icon"><span
-                                                    class="material-symbols-outlined">download</span></button>
-                                            <button class="btn-icon"><span
-                                                    class="material-symbols-outlined">visibility</span></button>
+                                        <td><span style="font-size: 13px; color: var(--text-secondary);">Relatório Médico</span></td>
+                                        <td><span style="font-size: 13px; color: var(--text-secondary);">28/08/2026</span></td>
+                                        <td><span style="font-size: 13px; color: var(--text-light);">1.2 MB</span></td>
+                                        <td style="text-align: right;">
+                                            <button class="btn-icon"><span class="material-symbols-outlined" style="font-size: 18px;">visibility</span></button>
+                                            <button class="btn-icon"><span class="material-symbols-outlined" style="font-size: 18px;">download</span></button>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td>
-                                            <div style="display: flex; align-items: center; gap: 8px;">
-                                                <span class="material-symbols-outlined"
-                                                    style="color: var(--primary);">picture_as_pdf</span>
-                                                <span style="font-weight: 500;">Exame_Urina_1_Ago2026.pdf</span>
+                                            <div style="display: flex; align-items: center; gap: 12px;">
+                                                <div style="width: 32px; height: 32px; border-radius: 4px; background: rgba(229, 62, 62, 0.1); color: var(--ind-escape); display: flex; align-items: center; justify-content: center;">
+                                                    <span class="material-symbols-outlined" style="font-size: 18px;">picture_as_pdf</span>
+                                                </div>
+                                                <span style="font-weight: 500; color: var(--text-dark);">Exame_Urina_1_Ago2026.pdf</span>
                                             </div>
                                         </td>
-                                        <td>Exame</td>
-                                        <td>10/08/2026</td>
-                                        <td>850 KB</td>
-                                        <td>
-                                            <button class="btn-icon"><span
-                                                    class="material-symbols-outlined">download</span></button>
-                                            <button class="btn-icon"><span
-                                                    class="material-symbols-outlined">visibility</span></button>
+                                        <td><span style="font-size: 13px; color: var(--text-secondary);">Exame Laboratorial</span></td>
+                                        <td><span style="font-size: 13px; color: var(--text-secondary);">10/08/2026</span></td>
+                                        <td><span style="font-size: 13px; color: var(--text-light);">850 KB</span></td>
+                                        <td style="text-align: right;">
+                                            <button class="btn-icon"><span class="material-symbols-outlined" style="font-size: 18px;">visibility</span></button>
+                                            <button class="btn-icon"><span class="material-symbols-outlined" style="font-size: 18px;">download</span></button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -1402,70 +1594,111 @@
 
                 <!-- ASSISTANT SCREEN -->
                 <section id="screen-assistant" class="screen">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                         <div>
                             <h1>Assistente Clínico IA</h1>
-                            <p>Consulte informações autorizadas dos seus pacientes usando linguagem natural.</p>
+                            <p>Consulte e analise os dados dos pacientes utilizando linguagem natural.</p>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--ind-good);"></div>
+                            <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">MCP: UroFlow Clinical Data V2</span>
                         </div>
                     </div>
 
-                    <div class="chat-container">
+                    <div class="chat-container" style="border: 1px solid var(--border); box-shadow: none;">
                         <!-- Chat History (Left) -->
-                        <div class="chat-sidebar">
-                            <div
-                                style="padding: 16px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 14px;">
-                                Histórico de Conversas</div>
-                            <div style="padding: 12px; display: flex; flex-direction: column; gap: 8px;">
-                                <div
-                                    style="padding: 12px; background: var(--surface); border-radius: var(--radius-md); font-size: 13px; cursor: pointer; border: 1px solid var(--primary);">
-                                    <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Resumo
-                                        da Ana Carolina</div>
-                                    <div style="color: var(--text-light);">Evolução dos escapes nos últimos 30 dias...
-                                    </div>
+                        <div class="chat-sidebar" style="border-right: 1px solid var(--border);">
+                            <div style="padding: 16px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 14px; display: flex; justify-content: space-between; align-items: center;">
+                                Histórico
+                                <button class="btn-icon" style="padding: 4px;"><span class="material-symbols-outlined" style="font-size: 18px;">add</span></button>
+                            </div>
+                            <div style="padding: 12px; display: flex; flex-direction: column; gap: 4px;">
+                                <div style="padding: 12px; background: var(--surface-solid); border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; border-left: 3px solid var(--primary);">
+                                    <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Resumo Ana Carolina</div>
+                                    <div style="color: var(--text-light); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Evolução dos escapes nos últimos 30 dias...</div>
                                 </div>
-                                <div
-                                    style="padding: 12px; border-radius: var(--radius-md); font-size: 13px; cursor: pointer;">
-                                    <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Consulta
-                                        do Lucas</div>
-                                    <div style="color: var(--text-light);">Comparação hídrica da semana...</div>
+                                <div style="padding: 12px; border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; border-left: 3px solid transparent;">
+                                    <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">Consulta Lucas A.</div>
+                                    <div style="color: var(--text-light); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Comparação hídrica da semana...</div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Chat Area -->
-                        <div class="chat-main">
-                            <div class="chat-history" id="chat-messages">
+                        <div class="chat-main" style="background: var(--bg-main);">
+                            
+                            <!-- Context Header -->
+                            <div style="padding: 12px 24px; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-light);">person</span>
+                                    <span style="font-size: 13px; color: var(--text-secondary);">Contexto ativo:</span>
+                                    <span style="font-weight: 600; font-size: 14px; color: var(--text-dark); background: var(--surface-solid); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border);">Ana Carolina Souza (ID: UF-000182)</span>
+                                </div>
+                                <button class="btn btn-outline" style="padding: 4px 12px; font-size: 12px;">Limpar contexto</button>
+                            </div>
+
+                            <div class="chat-history" id="chat-messages" style="padding: 24px;">
+                                
                                 <!-- Initial Greeting -->
-                                <div class="message">
-                                    <div class="message-avatar"><span class="material-symbols-outlined"
-                                            style="font-size: 18px;">smart_toy</span></div>
-                                    <div>
-                                        <div class="message-bubble">
-                                            Olá, Dra. Mariana. Posso consultar os dados clínicos disponíveis e ajudar a
-                                            organizar informações do acompanhamento. Sobre qual paciente você gostaria
-                                            de falar?
-                                        </div>
-                                        <div class="mcp-indicator">
-                                            <div class="dot"></div> MCP Conectado: UroFlow Clinical Data
+                                <div class="message" style="margin-bottom: 24px;">
+                                    <div class="message-avatar" style="background: var(--surface-solid); color: var(--primary); border: 1px solid var(--border);"><span class="material-symbols-outlined" style="font-size: 18px;">smart_toy</span></div>
+                                    <div style="max-width: 80%;">
+                                        <div class="message-bubble" style="box-shadow: none; border: 1px solid var(--border); font-size: 14px; line-height: 1.5; color: var(--text-dark);">
+                                            Olá, Dra. Mariana. Estou analisando o prontuário de <strong>Ana Carolina Souza</strong>. Como posso ajudar com a avaliação clínica de hoje?
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- User Message -->
+                                <div class="message user" style="margin-bottom: 24px; flex-direction: row-reverse;">
+                                    <div class="message-avatar" style="background: var(--primary); color: white;">MC</div>
+                                    <div style="max-width: 80%;">
+                                        <div class="message-bubble" style="background: var(--primary); color: white; border-radius: 12px 0 12px 12px; box-shadow: none; font-size: 14px; line-height: 1.5;">
+                                            Resuma a evolução dos escapes dela desde a última consulta.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- AI Response -->
+                                <div class="message" style="margin-bottom: 24px;">
+                                    <div class="message-avatar" style="background: var(--surface-solid); color: var(--primary); border: 1px solid var(--border);"><span class="material-symbols-outlined" style="font-size: 18px;">smart_toy</span></div>
+                                    <div style="max-width: 80%;">
+                                        <div class="message-bubble" style="box-shadow: none; border: 1px solid var(--border); font-size: 14px; line-height: 1.6; color: var(--text-dark);">
+                                            <p style="margin-bottom: 8px;">Desde a última consulta em <strong>12/08/2026</strong>, a paciente apresentou uma <strong>redução de 40%</strong> nos episódios de escape noturno.</p>
+                                            <ul style="margin-bottom: 12px; padding-left: 20px;">
+                                                <li>Semana 1: 4 escapes</li>
+                                                <li>Semana 2: 2 escapes</li>
+                                            </ul>
+                                            <p style="margin-bottom: 12px;">A melhora coincide com a adesão à restrição hídrica após as 19h (média atual: 100ml noturnos).</p>
+                                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                                <span style="font-size: 11px; background: var(--surface-solid); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border); color: var(--text-secondary); display: inline-flex; align-items: center; gap: 4px;"><span class="material-symbols-outlined" style="font-size: 14px;">description</span> Diário Miccional (Ago/26)</span>
+                                                <span style="font-size: 11px; background: var(--surface-solid); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border); color: var(--text-secondary); display: inline-flex; align-items: center; gap: 4px;"><span class="material-symbols-outlined" style="font-size: 14px;">event</span> Consulta (12/08/2026)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
 
                             <!-- Chat Input -->
-                            <div class="chat-input-area">
-                                <div
-                                    style="font-size: 12px; color: var(--text-light); text-align: center; margin-bottom: 12px;">
-                                    As informações baseiam-se nos dados do sistema. A decisão clínica permanece sob
-                                    responsabilidade do profissional.
+                            <div class="chat-input-area" style="padding: 16px 24px; border-top: 1px solid var(--border); background: var(--surface);">
+                                
+                                <!-- Suggestion Chips -->
+                                <div style="display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px;">
+                                    <button class="btn btn-outline" style="font-size: 12px; padding: 6px 12px; border-radius: 16px; white-space: nowrap; background: var(--surface-solid);">Gerar rascunho de evolução</button>
+                                    <button class="btn btn-outline" style="font-size: 12px; padding: 6px 12px; border-radius: 16px; white-space: nowrap; background: var(--surface-solid);">Quais as recomendações atuais?</button>
+                                    <button class="btn btn-outline" style="font-size: 12px; padding: 6px 12px; border-radius: 16px; white-space: nowrap; background: var(--surface-solid);">Comparar com mês passado</button>
                                 </div>
-                                <form class="chat-input-wrapper" id="chat-form" onsubmit="handleChatSubmit(event)">
+
+                                <div style="font-size: 11px; color: var(--text-light); text-align: center; margin-bottom: 8px;">
+                                    As informações baseiam-se nos dados do sistema. A decisão clínica permanece sob responsabilidade do profissional.
+                                </div>
+                                <form class="chat-input-wrapper" id="chat-form" onsubmit="handleChatSubmit(event)" style="box-shadow: none; border: 1px solid var(--border);">
                                     <input type="text" id="chat-input"
                                         placeholder="Pergunte sobre um paciente ou dados clínicos..."
-                                        autocomplete="off">
+                                        autocomplete="off" style="font-size: 14px;">
                                     <button type="submit" class="btn-icon"
-                                        style="background: var(--primary); color: white; border-radius: 50%;">
+                                        style="background: var(--primary); color: white; border-radius: 4px;">
                                         <span class="material-symbols-outlined">send</span>
                                     </button>
                                 </form>
@@ -1586,6 +1819,41 @@
 
     <!-- SCRIPTS -->
     <script>
+        // Search & Notifications Mock
+        function handleSearchFocus() {
+            document.getElementById('search-results').style.display = 'block';
+            const val = document.getElementById('main-search').value.toLowerCase();
+            handleSearchInput(val);
+        }
+
+        function handleSearchInput(val) {
+            const empty = document.getElementById('search-empty-state');
+            const noRes = document.getElementById('search-no-results');
+            const content = document.getElementById('search-content');
+            
+            if (!val) {
+                empty.style.display = 'block';
+                noRes.style.display = 'none';
+                content.style.display = 'none';
+                return;
+            }
+            
+            empty.style.display = 'none';
+            
+            if (val.includes('ana') || val.includes('carolina')) {
+                noRes.style.display = 'none';
+                content.style.display = 'block';
+            } else {
+                noRes.style.display = 'block';
+                content.style.display = 'none';
+            }
+        }
+
+        function toggleNotifications() {
+            const pop = document.getElementById('notifications-popover');
+            pop.style.display = pop.style.display === 'none' ? 'block' : 'none';
+        }
+
         // Navigation & Routing
         const screens = ['dashboard', 'patients', 'patient-profile', 'assistant', 'agenda', 'documents', 'settings'];
 
