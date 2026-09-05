@@ -2,20 +2,28 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, metrics } from '../../../shared/theme/colors';
+import { Input } from '../../../shared/ui/Input';
 import { formatDateInput, isValidDateString } from '../../../shared/utils/formatters';
 import { useChildStore } from '../../child/store/childStore';
 import { useUserStore } from '../../../shared/store/userStore';
 import { useAppointmentStore, useConsiderationStore } from '../../consultations/store/consultationsStore';
+import { NewAppointmentModal, AppointmentData } from '../../consultations/components/NewAppointmentModal';
+import { SuccessModal } from '../../../shared/ui/SuccessModal';
 
 export function OnboardingScreen() {
   const [step, setStep] = useState(1);
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
   // States
   const [guardianName, setGuardianName] = useState('');
   const [childName, setChildName] = useState('');
   const [childDob, setChildDob] = useState('');
   const [childGoal, setChildGoal] = useState('');
-  const [childApt, setChildApt] = useState('');
+  
+  // Modal & Appointment State
+  const [isAppointmentModalVisible, setIsAppointmentModalVisible] = useState(false);
+  const [newAppointment, setNewAppointment] = useState<AppointmentData | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // Stores
   const { setGuardianName: saveGuardianName } = useUserStore();
@@ -35,10 +43,6 @@ export function OnboardingScreen() {
       }
       if (!childDob.trim() || !isValidDateString(childDob)) {
         Alert.alert('Atenção', 'Digite uma data de nascimento válida (DD/MM/AAAA).');
-        return;
-      }
-      if (childApt.trim() && !isValidDateString(childApt)) {
-        Alert.alert('Atenção', 'A data da próxima consulta informada não é válida.');
         return;
       }
     }
@@ -69,6 +73,10 @@ export function OnboardingScreen() {
   };
 
   const handleFinish = () => {
+    setShowSuccess(true);
+  };
+
+  const finalizeRegistration = () => {
     saveGuardianName(guardianName.trim());
     
     const newChild = addChild({
@@ -86,27 +94,17 @@ export function OnboardingScreen() {
       });
     }
 
-    if (childApt.trim()) {
-      let formattedDate = childApt.trim();
-      if (formattedDate.includes('/')) {
-        const parts = formattedDate.split('/');
-        if (parts.length === 3) {
-          formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
-        }
-      }
-      
+    if (newAppointment) {
       addAppointment({
         childId: newChild.id,
-        specialty: 'Pediatria / Geral',
-        professional: 'A definir',
-        date: formattedDate,
-        time: '00:00',
-        location: 'A definir',
-        notes: '',
+        specialty: newAppointment.specialty,
+        professional: newAppointment.professional || 'A definir',
+        date: newAppointment.date,
+        time: newAppointment.time,
+        location: newAppointment.location || 'A definir',
+        notes: newAppointment.notes || '',
       });
     }
-    
-    // A transição será automática pelo RootNavigator pois a lista de children não será mais vazia
   };
 
   return (
@@ -131,13 +129,12 @@ export function OnboardingScreen() {
           )}
 
           {step === 2 && (
-            <View style={styles.box}>
+            <View style={styles.boxCentered}>
               <Text style={styles.title}>Sobre você</Text>
               <Text style={styles.subtitle}>Vamos identificar quem está acompanhando a criança.</Text>
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Seu nome</Text>
-                <TextInput 
-                  style={styles.input} 
+                <Text style={styles.label}>Nome do Responsável</Text>
+                <Input
                   placeholder="Ex: Maria" 
                   value={guardianName}
                   onChangeText={setGuardianName}
@@ -147,25 +144,23 @@ export function OnboardingScreen() {
           )}
 
           {step === 3 && (
-            <View style={styles.box}>
+            <View style={styles.boxCentered}>
               <Text style={styles.title}>Agora, vamos cadastrar a criança</Text>
               <Text style={styles.subtitle}>Essas informações ajudam a organizar o acompanhamento.</Text>
               
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Nome ou apelido</Text>
-                <TextInput 
-                  style={styles.input} 
-                  placeholder="Ex: Ana, Pedrinho..." 
+                <Text style={styles.label}>Nome da Criança</Text>
+                <Input 
+                  placeholder="Ex: João" 
                   value={childName}
                   onChangeText={setChildName}
                 />
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Data de nascimento (DD/MM/AAAA)</Text>
-                <TextInput 
-                  style={styles.input} 
-                  placeholder="Ex: 10/05/2018" 
+                <Text style={styles.label}>Data de Nascimento da Criança</Text>
+                <Input 
+                  placeholder="dd/mm/aaaa" 
                   value={childDob}
                   onChangeText={(text) => setChildDob(formatDateInput(text))}
                   keyboardType="numeric"
@@ -175,8 +170,7 @@ export function OnboardingScreen() {
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Objetivo atual do acompanhamento <Text style={styles.optional}>(Opcional)</Text></Text>
-                <TextInput 
-                  style={styles.input} 
+                <Input 
                   placeholder="Ex: Reduzir escapes na escola..." 
                   value={childGoal}
                   onChangeText={setChildGoal}
@@ -184,21 +178,31 @@ export function OnboardingScreen() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Data da próxima consulta <Text style={styles.optional}>(Opcional, DD/MM/AAAA)</Text></Text>
-                <TextInput 
-                  style={styles.input} 
-                  placeholder="Ex: 20/09/2026" 
-                  value={childApt}
-                  onChangeText={(text) => setChildApt(formatDateInput(text))}
-                  keyboardType="numeric"
-                  maxLength={10}
-                />
+                <Text style={styles.label}>Próxima consulta <Text style={styles.optional}>(Opcional)</Text></Text>
+                
+                {newAppointment ? (
+                  <View style={styles.appointmentSummary}>
+                    <Text style={styles.appointmentSummaryText}>
+                      {newAppointment.specialty} - {newAppointment.date} às {newAppointment.time}
+                    </Text>
+                    <TouchableOpacity onPress={() => setIsAppointmentModalVisible(true)}>
+                      <Text style={styles.appointmentSummaryEdit}>Editar</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity 
+                    style={styles.dashedButton}
+                    onPress={() => setIsAppointmentModalVisible(true)}
+                  >
+                    <Text style={styles.dashedButtonText}>+ Adicionar Nova Consulta</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           )}
 
           {step === 4 && (
-            <View style={styles.box}>
+            <View style={styles.boxCentered}>
               <Text style={styles.title}>Tudo pronto!</Text>
               <Text style={styles.subtitle}>Confira as informações antes de começar.</Text>
               
@@ -224,10 +228,10 @@ export function OnboardingScreen() {
                   </View>
                 ) : null}
                 
-                {childApt ? (
+                {newAppointment ? (
                   <View style={styles.infoBox}>
                     <Text style={styles.infoLabel}>Próxima Consulta:</Text>
-                    <Text style={styles.infoValue}>{childApt}</Text>
+                    <Text style={styles.infoValue}>{newAppointment.date} às {newAppointment.time}</Text>
                   </View>
                 ) : null}
               </View>
@@ -262,6 +266,24 @@ export function OnboardingScreen() {
           )}
         </View>
       </KeyboardAvoidingView>
+
+      <NewAppointmentModal 
+        visible={isAppointmentModalVisible}
+        onClose={() => setIsAppointmentModalVisible(false)}
+        initialData={newAppointment || undefined}
+        onSave={(data) => {
+          setNewAppointment(data);
+          setIsAppointmentModalVisible(false);
+        }}
+      />
+
+      <SuccessModal 
+        visible={showSuccess} 
+        onAnimationEnd={() => {
+          setShowSuccess(false);
+          finalizeRegistration();
+        }} 
+      />
     </SafeAreaView>
   );
 }
@@ -306,6 +328,10 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: 24,
   },
+  boxCentered: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -325,33 +351,13 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
-    color: colors.textSecondary,
+    fontWeight: 'bold',
+    color: colors.primaryDark,
     marginBottom: 8,
   },
   optional: {
     fontWeight: 'normal',
     color: colors.textLight,
-  },
-  input: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: metrics.radiusSm,
-    padding: 16,
-    fontSize: 16,
-    color: colors.textDark,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  ageText: {
-    fontSize: 14,
-    color: colors.primary,
-    fontWeight: 'bold',
-    marginTop: 8,
   },
   card: {
     backgroundColor: colors.surface,
@@ -424,7 +430,7 @@ const styles = StyleSheet.create({
   primaryButton: {
     backgroundColor: colors.primary,
     padding: 16,
-    borderRadius: metrics.radiusSm,
+    borderRadius: metrics.radiusMd,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -436,15 +442,50 @@ const styles = StyleSheet.create({
   secondaryButton: {
     backgroundColor: colors.surface,
     padding: 16,
-    borderRadius: metrics.radiusSm,
+    borderRadius: metrics.radiusMd,
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   secondaryButtonText: {
-    color: colors.textSecondary,
+    color: colors.primaryDark,
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  dashedButton: {
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+    borderRadius: metrics.radiusMd,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dashedButtonText: {
+    color: colors.primaryDark,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  appointmentSummary: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: metrics.radiusMd,
+    padding: 16,
+  },
+  appointmentSummaryText: {
+    fontSize: 14,
+    color: colors.textDark,
+    fontWeight: '500',
+  },
+  appointmentSummaryEdit: {
+    fontSize: 14,
+    color: colors.primary,
     fontWeight: 'bold',
   }
 });

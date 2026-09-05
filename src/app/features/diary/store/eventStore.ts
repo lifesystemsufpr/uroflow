@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { v4 as uuidv4 } from 'uuid';
+import { generateId } from '../../../shared/utils/generateId';
 import { DiaryEvent, CreateEventInput } from '../types';
 
 interface EventState {
@@ -22,7 +22,7 @@ export const useEventStore = create<EventState>()(
 
       addEvent: (eventData) => {
         const newEvent: DiaryEvent = {
-          id: uuidv4(),
+          id: generateId(),
           ...eventData,
           createdAt: new Date().toISOString(),
         };

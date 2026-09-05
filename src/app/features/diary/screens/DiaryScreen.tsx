@@ -8,8 +8,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '../../../shared/ui/Screen';
 import { useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { format, subDays, addDays, isToday, isYesterday } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 type FilterType = 'all' | 'pee' | 'water' | 'poop' | 'night' | 'escape' | 'pain';
+
+function formatDayLabel(date: Date): string {
+  if (isToday(date)) return 'Hoje';
+  if (isYesterday(date)) return 'Ontem';
+  return format(date, "dd 'de' MMMM", { locale: ptBR });
+}
 
 export function DiaryScreen() {
   const route = useRoute<any>();
@@ -20,16 +28,23 @@ export function DiaryScreen() {
   
   const [filter, setFilter] = useState<FilterType>(route.params?.filter || 'all');
   const [selectorVisible, setSelectorVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   
   useEffect(() => {
     if (route.params?.filter) {
       setFilter(route.params.filter);
     }
   }, [route.params?.filter]);
-  
-  const filteredEvents = filter === 'all' 
-    ? events 
-    : events.filter(e => e.type === filter);
+
+  const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+  const isSelectedToday = isToday(selectedDate);
+
+  const filteredEvents = events.filter(e => {
+    const matchesDate = e.date === selectedDateStr;
+    const matchesFilter = filter === 'all' || e.type === filter;
+    const matchesChild = e.childId === activeChildId;
+    return matchesDate && matchesFilter && matchesChild;
+  });
 
   return (
     <Screen style={{ backgroundColor: colors.background }}>
@@ -43,12 +58,21 @@ export function DiaryScreen() {
       </View>
 
       <View style={styles.dateBar}>
-        <TouchableOpacity>
+        <TouchableOpacity
+          style={styles.dateArrowBtn}
+          onPress={() => setSelectedDate(prev => subDays(prev, 1))}
+        >
           <Ionicons name="chevron-back" size={20} color={colors.water} />
         </TouchableOpacity>
-        <Text style={styles.dateText}>Hoje</Text>
-        <TouchableOpacity>
-          <Ionicons name="chevron-forward" size={20} color={colors.water} />
+        <Text style={styles.dateText}>{formatDayLabel(selectedDate)}</Text>
+        <TouchableOpacity
+          style={[styles.dateArrowBtn, isSelectedToday && styles.dateArrowBtnDisabled]}
+          onPress={() => {
+            if (!isSelectedToday) setSelectedDate(prev => addDays(prev, 1));
+          }}
+          disabled={isSelectedToday}
+        >
+          <Ionicons name="chevron-forward" size={20} color={isSelectedToday ? colors.border : colors.water} />
         </TouchableOpacity>
       </View>
 
@@ -66,7 +90,11 @@ export function DiaryScreen() {
         {filteredEvents.length === 0 ? (
           <View style={styles.empty}>
             <Text style={styles.emptyEmoji}>🤷</Text>
-            <Text style={styles.emptyText}>Hoje ainda não há registros para este filtro.</Text>
+            <Text style={styles.emptyText}>
+              {isSelectedToday
+                ? 'Hoje ainda não há registros para este filtro.'
+                : `Nenhum registro encontrado para este dia.`}
+            </Text>
           </View>
         ) : (
           filteredEvents.map((evt, index) => (
@@ -184,6 +212,12 @@ const styles = StyleSheet.create({
     paddingVertical: metrics.paddingMd,
     paddingHorizontal: metrics.paddingLg,
     backgroundColor: colors.surface,
+  },
+  dateArrowBtn: {
+    padding: 8,
+  },
+  dateArrowBtnDisabled: {
+    opacity: 0.3,
   },
   dateText: {
     fontSize: 16,

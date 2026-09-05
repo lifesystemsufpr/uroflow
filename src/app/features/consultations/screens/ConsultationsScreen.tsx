@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { Screen } from '../../../shared/ui/Screen';
-import { useChildStore } from '../../child';
+import { useChildStore, ChildSelector } from '../../child';
 import { useAppointmentStore, useConsiderationStore } from '../store/consultationsStore';
 import { colors, metrics } from '../../../shared/theme/colors';
 import { formatDateInput, isValidDateString, formatTimeInput, isValidTimeString } from '../../../shared/utils/formatters';
@@ -9,6 +9,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { formatDate } from '../../../shared/utils/date';
 import { Appointment } from '../types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SuccessModal } from '../../../shared/ui/SuccessModal';
+import { Input } from '../../../shared/ui/Input';
+import { AppointmentDetailsModal } from '../components/AppointmentDetailsModal';
 
 const tealDark = '#00696E';
 const tealLight = '#E6F4F1';
@@ -22,6 +25,9 @@ export function ConsultationsScreen() {
   const { considerations, toggleComplete, addConsideration } = useConsiderationStore();
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [detailsModalVisible, setDetailsModalVisible] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [selectorVisible, setSelectorVisible] = useState(false);
   const [specialty, setSpecialty] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
@@ -33,19 +39,20 @@ export function ConsultationsScreen() {
   const [consModalVisible, setConsModalVisible] = useState(false);
   const [consTitle, setConsTitle] = useState('');
   const [consDesc, setConsDesc] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const now = new Date();
   
   // Sort future appointments so the soonest is first
   const futureAppts = appointments
-    .filter(a => new Date(`${a.date}T${a.time}`) >= now)
+    .filter(a => a.childId === activeChildId && new Date(`${a.date}T${a.time}`) >= now)
     .sort((a, b) => new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime());
   
   const pastAppts = appointments
-    .filter(a => new Date(`${a.date}T${a.time}`) < now)
+    .filter(a => a.childId === activeChildId && new Date(`${a.date}T${a.time}`) < now)
     .sort((a, b) => new Date(`${b.date}T${b.time}`).getTime() - new Date(`${a.date}T${a.time}`).getTime());
     
-  const activeConsiderations = considerations.filter(c => !c.completed);
+  const childConsiderations = considerations.filter(c => c.childId === activeChildId);
 
   const nextAppt = futureAppts.length > 0 ? futureAppts[0] : null;
   const otherFutureAppts = futureAppts.length > 1 ? futureAppts.slice(1) : [];
@@ -95,6 +102,7 @@ export function ConsultationsScreen() {
     setProfessional('');
     setLocation('');
     setNotes('');
+    setShowSuccess(true);
   };
 
   const handleSaveConsideration = () => {
@@ -114,12 +122,13 @@ export function ConsultationsScreen() {
     setConsModalVisible(false);
     setConsTitle('');
     setConsDesc('');
+    setShowSuccess(true);
   };
 
   return (
     <Screen style={{ backgroundColor: colors.background }}>
       <View style={[styles.topBar, { paddingTop: Math.max(insets.top, 16) }]}>
-        <TouchableOpacity style={styles.childSelector}>
+        <TouchableOpacity style={styles.childSelector} onPress={() => setSelectorVisible(true)}>
           <View style={styles.avatarWrapper}>
             <Text style={styles.avatarText}>{activeChild?.avatar || '👦'}</Text>
           </View>
@@ -129,31 +138,51 @@ export function ConsultationsScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         
-        {/* Próxima Consulta */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>PRÓXIMA CONSULTA</Text>
-          {nextAppt ? (
-            <AppointmentCard appointment={nextAppt} />
-          ) : (
-            <View style={styles.card}>
-              <Text style={styles.emptyText}>Nenhuma consulta marcada.</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Outras Consultas */}
-        {otherFutureAppts.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>OUTRAS CONSULTAS FUTURAS</Text>
-            {otherFutureAppts.map(appt => (
-              <AppointmentCard key={appt.id} appointment={appt} />
-            ))}
+        {/* Futuras Consultas ou Empty State */}
+        {!nextAppt ? (
+          <View style={styles.emptyStateContainer}>
+            <Text style={styles.emptyStateIcon}>📅</Text>
+            <Text style={styles.emptyStateText}>
+              Você não tem nenhuma consulta{'\n'}marcada para o momento.
+            </Text>
+            <TouchableOpacity style={[styles.primaryButton, { width: '100%' }]} onPress={() => setModalVisible(true)}>
+              <Text style={styles.primaryButtonText}>+ Adicionar consulta</Text>
+            </TouchableOpacity>
           </View>
-        )}
+        ) : (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>PRÓXIMA CONSULTA</Text>
+              <AppointmentCard 
+                appointment={nextAppt} 
+                onPress={() => {
+                  setSelectedAppointment(nextAppt);
+                  setDetailsModalVisible(true);
+                }}
+              />
+            </View>
 
-        <TouchableOpacity style={styles.primaryButton} onPress={() => setModalVisible(true)}>
-          <Text style={styles.primaryButtonText}>+ Adicionar consulta</Text>
-        </TouchableOpacity>
+            {otherFutureAppts.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>OUTRAS CONSULTAS FUTURAS</Text>
+                {otherFutureAppts.map(appt => (
+                  <AppointmentCard 
+                    key={appt.id} 
+                    appointment={appt}
+                    onPress={() => {
+                      setSelectedAppointment(appt);
+                      setDetailsModalVisible(true);
+                    }}
+                  />
+                ))}
+              </View>
+            )}
+
+            <TouchableOpacity style={styles.primaryButton} onPress={() => setModalVisible(true)}>
+              <Text style={styles.primaryButtonText}>+ Adicionar consulta</Text>
+            </TouchableOpacity>
+          </>
+        )}
 
         {/* Considerações Box */}
         <View style={styles.considerationBox}>
@@ -162,17 +191,21 @@ export function ConsultationsScreen() {
             <Text style={styles.considerationTitleText}>Quero conversar na próxima consulta</Text>
           </View>
           
-          {activeConsiderations.length > 0 ? (
-            activeConsiderations.map((cons, index) => (
+          {childConsiderations.length > 0 ? (
+            childConsiderations.map((cons, index) => (
               <View key={cons.id}>
                 <TouchableOpacity 
                   style={styles.considerationItem}
                   onPress={() => toggleComplete(cons.id)}
                 >
-                  <View style={styles.checkbox} />
-                  <Text style={styles.considerationItemText}>{cons.title}</Text>
+                  <View style={[styles.checkbox, cons.completed && styles.checkboxChecked]}>
+                    {cons.completed && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}
+                  </View>
+                  <Text style={[styles.considerationItemText, cons.completed && styles.considerationItemTextCompleted]}>
+                    {cons.title}
+                  </Text>
                 </TouchableOpacity>
-                {index < activeConsiderations.length - 1 && <View style={styles.considerationDivider} />}
+                {index < childConsiderations.length - 1 && <View style={styles.considerationDivider} />}
               </View>
             ))
           ) : (
@@ -188,7 +221,17 @@ export function ConsultationsScreen() {
         {pastAppts.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>CONSULTAS ANTERIORES</Text>
-            {pastAppts.map(appt => <AppointmentCard key={appt.id} appointment={appt} isPast />)}
+            {pastAppts.map(appt => (
+              <AppointmentCard 
+                key={appt.id} 
+                appointment={appt} 
+                isPast 
+                onPress={() => {
+                  setSelectedAppointment(appt);
+                  setDetailsModalVisible(true);
+                }}
+              />
+            ))}
           </View>
         )}
         
@@ -217,53 +260,43 @@ export function ConsultationsScreen() {
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Especialidade</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Pediatria"
-                    value={specialty}
-                    onChangeText={setSpecialty}
-                  />
-                  <Ionicons name="chevron-down" size={20} color={colors.textLight} />
-                </View>
+                <Input
+                  placeholder="Pediatria"
+                  value={specialty}
+                  onChangeText={setSpecialty}
+                  rightIcon={<Ionicons name="chevron-down" size={20} color={colors.textLight} />}
+                />
               </View>
 
               <View style={styles.row}>
                 <View style={[styles.inputGroup, { flex: 1, marginRight: 12 }]}>
                   <Text style={styles.label}>Data</Text>
-                  <View style={styles.inputWrapper}>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="dd/mm/aaaa"
-                      value={date}
-                      onChangeText={(text) => setDate(formatDateInput(text))}
-                      keyboardType="numeric"
-                      maxLength={10}
-                    />
-                    <Ionicons name="calendar-outline" size={20} color={colors.textDark} />
-                  </View>
+                  <Input
+                    placeholder="dd/mm/aaaa"
+                    value={date}
+                    onChangeText={(text) => setDate(formatDateInput(text))}
+                    keyboardType="numeric"
+                    maxLength={10}
+                    rightIcon={<Ionicons name="calendar-outline" size={20} color={colors.textDark} />}
+                  />
                 </View>
 
                 <View style={[styles.inputGroup, { flex: 1 }]}>
                   <Text style={styles.label}>Horário</Text>
-                  <View style={styles.inputWrapper}>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="--:--"
-                      value={time}
-                      onChangeText={(text) => setTime(formatTimeInput(text))}
-                      keyboardType="numeric"
-                      maxLength={5}
-                    />
-                    <Ionicons name="time-outline" size={20} color={colors.textDark} />
-                  </View>
+                  <Input
+                    placeholder="--:--"
+                    value={time}
+                    onChangeText={(text) => setTime(formatTimeInput(text))}
+                    keyboardType="numeric"
+                    maxLength={5}
+                    rightIcon={<Ionicons name="time-outline" size={20} color={colors.textDark} />}
+                  />
                 </View>
               </View>
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Profissional</Text>
-                <TextInput
-                  style={[styles.input, styles.inputSolo]}
+                <Input
                   placeholder="Nome do médico(a)"
                   value={professional}
                   onChangeText={setProfessional}
@@ -272,8 +305,7 @@ export function ConsultationsScreen() {
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Local</Text>
-                <TextInput
-                  style={[styles.input, styles.inputSolo]}
+                <Input
                   placeholder="Clínica, hospital..."
                   value={location}
                   onChangeText={setLocation}
@@ -282,8 +314,7 @@ export function ConsultationsScreen() {
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Observação</Text>
-                <TextInput
-                  style={[styles.input, styles.inputSolo]}
+                <Input
                   placeholder="Motivo da consulta"
                   value={notes}
                   onChangeText={setNotes}
@@ -309,6 +340,14 @@ export function ConsultationsScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
+      {/* Appointment Details Modal */}
+      <AppointmentDetailsModal
+        visible={detailsModalVisible}
+        onClose={() => setDetailsModalVisible(false)}
+        appointment={selectedAppointment}
+        onAddConsideration={() => setConsModalVisible(true)}
+      />
+
       {/* Consideration Modal */}
       <Modal
         visible={consModalVisible}
@@ -331,8 +370,7 @@ export function ConsultationsScreen() {
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Assunto (Curto)</Text>
-                <TextInput
-                  style={[styles.input, styles.inputSolo]}
+                <Input
                   placeholder="Ex: Escape durante a noite"
                   value={consTitle}
                   onChangeText={setConsTitle}
@@ -341,8 +379,8 @@ export function ConsultationsScreen() {
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Detalhes (Opcional)</Text>
-                <TextInput
-                  style={[styles.input, styles.inputSolo, { height: 100, textAlignVertical: 'top' }]}
+                <Input
+                  style={{ height: 100 }}
                   placeholder="Adicione mais detalhes se precisar..."
                   value={consDesc}
                   onChangeText={setConsDesc}
@@ -362,14 +400,24 @@ export function ConsultationsScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <SuccessModal 
+        visible={showSuccess} 
+        onAnimationEnd={() => setShowSuccess(false)} 
+      />
+      <ChildSelector
+        visible={selectorVisible}
+        onClose={() => setSelectorVisible(false)}
+        onAddChild={() => setSelectorVisible(false)}
+      />
     </Screen>
   );
 }
 
-function AppointmentCard({ appointment, isPast = false }: { appointment: Appointment, isPast?: boolean }) {
+function AppointmentCard({ appointment, isPast = false, onPress }: { appointment: Appointment, isPast?: boolean, onPress?: () => void }) {
   const icon = isPast ? '✓' : '🗓️';
   return (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.cardRow}>
         <View style={[styles.dateBox, isPast && styles.dateBoxPast]}>
           <Text style={[styles.dateDay, isPast && styles.textMuted]}>{formatDate(appointment.date, 'dd')}</Text>
@@ -380,7 +428,7 @@ function AppointmentCard({ appointment, isPast = false }: { appointment: Appoint
           <Text style={styles.professional}>{appointment.time} - {appointment.professional}</Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -485,6 +533,21 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
   },
+  emptyStateContainer: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  emptyStateIcon: {
+    fontSize: 56,
+    marginBottom: 16,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 24,
+  },
   primaryButton: {
     backgroundColor: tealDark,
     paddingVertical: 16,
@@ -526,17 +589,26 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
+    width: 24,
+    height: 24,
+    borderRadius: 6,
     borderWidth: 2,
     borderColor: tealDark,
     marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: tealDark,
   },
   considerationItemText: {
-    fontSize: 14,
+    fontSize: 16,
     color: tealDark,
     fontWeight: '500',
+  },
+  considerationItemTextCompleted: {
+    textDecorationLine: 'line-through',
+    color: '#8A9D9E',
   },
   considerationDivider: {
     height: 1,
@@ -592,26 +664,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#64748B', // Slate gray
     marginBottom: 8,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-  },
-  input: {
-    flex: 1,
-    paddingVertical: 14,
-    fontSize: 14,
-    color: colors.textDark,
-  },
-  inputSolo: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 16,
   },
   modalActions: {
     flexDirection: 'row',

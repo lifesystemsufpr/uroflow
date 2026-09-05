@@ -1,7 +1,7 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { v4 as uuidv4 } from 'uuid';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { generateId } from '../../../shared/utils/generateId';
 import { Child, CreateChildInput, UpdateChildInput } from '../types';
 
 interface ChildState {
@@ -29,7 +29,7 @@ export const useChildStore = create<ChildState>()(
 
       addChild: (childData) => {
         const newChild: Child = {
-          id: uuidv4(),
+          id: generateId(),
           ...childData,
         };
         set((state) => ({
@@ -47,7 +47,7 @@ export const useChildStore = create<ChildState>()(
         const updated = { ...children[index], ...childData };
         const newChildren = [...children];
         newChildren[index] = updated;
-        
+
         set({ children: newChildren });
         return updated;
       },
@@ -57,8 +57,8 @@ export const useChildStore = create<ChildState>()(
           const filtered = state.children.filter(c => c.id !== id);
           return {
             children: filtered,
-            activeChildId: state.activeChildId === id 
-              ? (filtered.length > 0 ? filtered[0].id : null) 
+            activeChildId: state.activeChildId === id
+              ? (filtered.length > 0 ? filtered[0].id : null)
               : state.activeChildId
           };
         });

@@ -6,6 +6,8 @@ import { colors, metrics } from '../../../shared/theme/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatDateInput, isValidDateString } from '../../../shared/utils/formatters';
+import { SuccessModal } from '../../../shared/ui/SuccessModal';
+import { Input } from '../../../shared/ui/Input';
 
 interface Props {
   visible: boolean;
@@ -21,6 +23,7 @@ export function AddChildModal({ visible, onClose }: Props) {
   const [birthDate, setBirthDate] = useState('');
   const [goal, setGoal] = useState('');
   const [nextAppointment, setNextAppointment] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -71,7 +74,7 @@ export function AddChildModal({ visible, onClose }: Props) {
     setBirthDate('');
     setGoal('');
     setNextAppointment('');
-    onClose();
+    setShowSuccess(true);
   };
 
   return (
@@ -91,8 +94,7 @@ export function AddChildModal({ visible, onClose }: Props) {
           <ScrollView showsVerticalScrollIndicator={false}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Nome ou apelido *</Text>
-              <TextInput
-                style={styles.input}
+              <Input
                 placeholder="Ex: Ana, Pedrinho..."
                 value={name}
                 onChangeText={setName}
@@ -101,45 +103,38 @@ export function AddChildModal({ visible, onClose }: Props) {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Data de nascimento</Text>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.inputIcon}
-                  placeholder="dd/mm/aaaa"
-                  value={birthDate}
-                  onChangeText={(text) => setBirthDate(formatDateInput(text))}
-                  keyboardType="numeric"
-                  maxLength={10}
-                />
-                <Ionicons name="calendar-outline" size={20} color={colors.textDark} />
-              </View>
+              <Input
+                placeholder="dd/mm/aaaa"
+                value={birthDate}
+                onChangeText={(text) => setBirthDate(formatDateInput(text))}
+                keyboardType="numeric"
+                maxLength={10}
+                rightIcon={<Ionicons name="calendar-outline" size={20} color={colors.textDark} />}
+              />
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Objetivo atual do acompanhamento</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
+              <Input
+                style={styles.textArea}
                 placeholder="Ex: Reduzir escapes na escola..."
                 value={goal}
                 onChangeText={setGoal}
                 multiline
                 numberOfLines={3}
-                textAlignVertical="top"
               />
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Data da próxima consulta</Text>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.inputIcon}
-                  placeholder="dd/mm/aaaa"
-                  value={nextAppointment}
-                  onChangeText={(text) => setNextAppointment(formatDateInput(text))}
-                  keyboardType="numeric"
-                  maxLength={10}
-                />
-                <Ionicons name="calendar-outline" size={20} color={colors.textDark} />
-              </View>
+              <Input
+                placeholder="dd/mm/aaaa"
+                value={nextAppointment}
+                onChangeText={(text) => setNextAppointment(formatDateInput(text))}
+                keyboardType="numeric"
+                maxLength={10}
+                rightIcon={<Ionicons name="calendar-outline" size={20} color={colors.textDark} />}
+              />
             </View>
 
             <TouchableOpacity style={styles.primaryButton} onPress={handleSave}>
@@ -148,6 +143,14 @@ export function AddChildModal({ visible, onClose }: Props) {
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
+
+      <SuccessModal 
+        visible={showSuccess} 
+        onAnimationEnd={() => {
+          setShowSuccess(false);
+          onClose();
+        }} 
+      />
     </Modal>
   );
 }
@@ -184,29 +187,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#64748B', // Slate gray
     marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 14,
-    color: colors.textDark,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-  },
-  inputIcon: {
-    flex: 1,
-    paddingVertical: 14,
-    fontSize: 14,
-    color: colors.textDark,
   },
   textArea: {
     height: 100,

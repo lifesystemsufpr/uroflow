@@ -50,7 +50,7 @@ export const formatTimeInput = (value: string): string => {
     v = v.slice(0, 4);
   }
   if (v.length >= 3) {
-    return "\:\;"
+    return `${v.slice(0, 2)}:${v.slice(2)}`;
   }
   return v;
 };

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { v4 as uuidv4 } from 'uuid';
+import { generateId } from '../../../shared/utils/generateId';
 import { Appointment, CreateAppointmentInput, Consideration, CreateConsiderationInput } from '../types';
 
 interface AppointmentState {
@@ -20,7 +20,7 @@ export const useAppointmentStore = create<AppointmentState>()(
       setHasHydrated: (state) => set({ _hasHydrated: state }),
       addAppointment: (data) => {
         const newAppt: Appointment = {
-          id: uuidv4(),
+          id: generateId(),
           ...data,
           createdAt: new Date().toISOString(),
         };
@@ -56,7 +56,7 @@ export const useConsiderationStore = create<ConsiderationState>()(
       setHasHydrated: (state) => set({ _hasHydrated: state }),
       addConsideration: (data) => {
         const newCons: Consideration = {
-          id: uuidv4(),
+          id: generateId(),
           ...data,
           completed: false,
           createdAt: new Date().toISOString(),

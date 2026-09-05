@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text } from 'react-native';
+import { Text, View } from 'react-native';
 import { useChildStore } from '../features/child';
-import { useEventStore } from '../features/diary';
 import { useAppointmentStore, useConsiderationStore } from '../features/consultations';
-import { seedDatabase } from '../shared/utils/seed';
+import { useEventStore } from '../features/diary';
+
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isReady, setIsReady] = useState(false);
@@ -14,10 +14,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Check if all stores are hydrated
-    const isHydrated = 
-      childStore._hasHydrated && 
-      eventStore._hasHydrated && 
-      apptStore._hasHydrated && 
+    const isHydrated =
+      childStore._hasHydrated &&
+      eventStore._hasHydrated &&
+      apptStore._hasHydrated &&
       consStore._hasHydrated;
 
     if (isHydrated && !isReady) {

@@ -6,6 +6,8 @@ import { useChildStore } from '../../child';
 import { wizardDefinitions, WizardOption } from '../components/wizardConfig';
 import { colors, metrics } from '../../../shared/theme/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { SuccessModal } from '../../../shared/ui/SuccessModal';
+import { Input } from '../../../shared/ui/Input';
 
 export function WizardScreen() {
   const navigation = useNavigation();
@@ -20,6 +22,7 @@ export function WizardScreen() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [textValue, setTextValue] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   if (!def) {
     return (
@@ -102,7 +105,7 @@ export function WizardScreen() {
       data: finalAnswers,
     });
     
-    navigation.goBack();
+    setShowSuccess(true);
   };
 
   return (
@@ -152,14 +155,12 @@ export function WizardScreen() {
         )}
 
         {step.type === 'text' && (
-          <TextInput
+          <Input
             style={styles.textArea}
             multiline
             placeholder={step.placeholder}
-            placeholderTextColor="#94A3B8"
             value={textValue}
             onChangeText={setTextValue}
-            textAlignVertical="top"
           />
         )}
       </ScrollView>
@@ -189,6 +190,14 @@ export function WizardScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      <SuccessModal 
+        visible={showSuccess} 
+        onAnimationEnd={() => {
+          setShowSuccess(false);
+          navigation.goBack();
+        }} 
+      />
     </SafeAreaView>
   );
 }
@@ -305,12 +314,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   textArea: {
-    backgroundColor: '#475569',
-    color: '#F8FAFC',
     minHeight: 120,
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
   },
   footer: {
     padding: 24,

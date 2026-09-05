@@ -1,10 +1,11 @@
-import { format, isToday as dateFnsIsToday, parseISO } from 'date-fns';
+import { isToday as dateFnsIsToday, format, parseISO } from 'date-fns';
 
 export function formatDate(dateStr: string, dateFormat: string = 'dd/MM/yyyy'): string {
   try {
     const date = parseISO(dateStr);
     return format(date, dateFormat);
   } catch (e) {
+
     return dateStr;
   }
 }
@@ -35,7 +36,7 @@ export function calculateAge(birthDateStr?: string): string {
   if (!birthDateStr) return '';
   try {
     let birthDate: Date;
-    
+
     if (birthDateStr.includes('/')) {
       const parts = birthDateStr.split('/');
       if (parts.length === 3) {
@@ -46,7 +47,7 @@ export function calculateAge(birthDateStr?: string): string {
     } else {
       birthDate = parseISO(birthDateStr);
     }
-    
+
     if (isNaN(birthDate.getTime())) return '';
 
     const today = new Date();

@@ -1,15 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useEventStore } from '../../diary';
+import { useChildStore } from '../../child';
 import { colors, metrics } from '../../../shared/theme/colors';
 import { useNavigation } from '@react-navigation/native';
 
 export function HomeSummary() {
   const { events } = useEventStore();
+  const { activeChildId } = useChildStore();
   const navigation = useNavigation<any>();
   
   const today = new Date().toISOString().split('T')[0];
-  const todayEvents = events.filter(e => e.date === today);
+  const todayEvents = events.filter(e => e.date === today && e.childId === activeChildId);
 
   const peeCount = todayEvents.filter(e => e.type === 'pee').length;
   const poopCount = todayEvents.filter(e => e.type === 'poop').length;

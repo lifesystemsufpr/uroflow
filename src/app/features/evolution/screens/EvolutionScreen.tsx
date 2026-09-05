@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Screen } from '../../../shared/ui/Screen';
-import { useChildStore } from '../../child';
+import { useChildStore, ChildSelector } from '../../child';
 import { colors, metrics } from '../../../shared/theme/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -9,6 +9,7 @@ export function EvolutionScreen() {
   const insets = useSafeAreaInsets();
   const { children, activeChildId } = useChildStore();
   const activeChild = children.find(c => c.id === activeChildId);
+  const [selectorVisible, setSelectorVisible] = useState(false);
   
   const days = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
   
@@ -20,7 +21,7 @@ export function EvolutionScreen() {
   return (
     <Screen style={{ backgroundColor: colors.background }}>
       <View style={[styles.topBar, { paddingTop: Math.max(insets.top, 16) }]}>
-        <TouchableOpacity style={styles.childSelector}>
+        <TouchableOpacity style={styles.childSelector} onPress={() => setSelectorVisible(true)}>
           <View style={styles.avatarWrapper}>
             <Text style={styles.avatarText}>{activeChild?.avatar || '👦'}</Text>
           </View>
@@ -57,6 +58,11 @@ export function EvolutionScreen() {
         
         <View style={{ height: 40 }} />
       </ScrollView>
+      <ChildSelector
+        visible={selectorVisible}
+        onClose={() => setSelectorVisible(false)}
+        onAddChild={() => setSelectorVisible(false)}
+      />
     </Screen>
   );
 }

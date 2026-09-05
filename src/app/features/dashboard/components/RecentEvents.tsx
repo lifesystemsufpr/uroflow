@@ -1,16 +1,18 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useEventStore, DiaryEvent } from '../../diary';
+import { useChildStore } from '../../child';
 import { colors, metrics } from '../../../shared/theme/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 export function RecentEvents() {
   const { events } = useEventStore();
+  const { activeChildId } = useChildStore();
   const navigation = useNavigation<any>();
   
-  // Pegar os 3 últimos eventos
-  const recentEvents = events.slice(0, 3);
+  // Get the 3 most recent events for the active child
+  const recentEvents = events.filter(e => e.childId === activeChildId).slice(0, 3);
 
   if (recentEvents.length === 0) {
     return (
