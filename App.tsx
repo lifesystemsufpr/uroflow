@@ -1,15 +1,19 @@
-import 'react-native-get-random-values';
-import React from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { RootNavigator } from './src/app/navigation/RootNavigator';
-import { AppProvider } from './src/app/providers/AppProvider';
+import { RootNavigator } from '@/app/navigation/RootNavigator';
+import { AppProvider } from '@/app/providers/AppProvider';
+import { colors } from '@/shared/theme';
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <AppProvider>
-        <RootNavigator />
-      </AppProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
+      <SafeAreaProvider>
+        <StatusBar style="dark" />
+        <AppProvider>
+          <RootNavigator />
+        </AppProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

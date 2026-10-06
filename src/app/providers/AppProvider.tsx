@@ -1,37 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
-import { useChildStore } from '../features/child';
-import { useAppointmentStore, useConsiderationStore } from '../features/consultations';
-import { useEventStore } from '../features/diary';
+import type { ReactNode } from 'react';
+import { useFonts } from 'expo-font';
+import { BrandLoader } from '@/shared/ui';
+import { fontAssets } from '@/shared/theme/fontAssets';
+import { useChildStore } from '@/features/child';
+import { useUserStore } from '@/features/user';
+import { useEventStore } from '@/features/diary';
+import { useAppointmentStore, useConsiderationStore } from '@/features/consultations';
 
+const useStoresHydrated = () => {
+  const child = useChildStore((s) => s._hasHydrated);
+  const user = useUserStore((s) => s._hasHydrated);
+  const events = useEventStore((s) => s._hasHydrated);
+  const appointments = useAppointmentStore((s) => s._hasHydrated);
+  const considerations = useConsiderationStore((s) => s._hasHydrated);
+  return child && user && events && appointments && considerations;
+};
 
-export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [isReady, setIsReady] = useState(false);
-  const childStore = useChildStore();
-  const eventStore = useEventStore();
-  const apptStore = useAppointmentStore();
-  const consStore = useConsiderationStore();
+export function AppProvider({ children }: { children: ReactNode }) {
+  const [fontsLoaded, fontError] = useFonts(fontAssets);
+  const hydrated = useStoresHydrated();
 
-  useEffect(() => {
-    // Check if all stores are hydrated
-    const isHydrated =
-      childStore._hasHydrated &&
-      eventStore._hasHydrated &&
-      apptStore._hasHydrated &&
-      consStore._hasHydrated;
-
-    if (isHydrated && !isReady) {
-      setIsReady(true);
-    }
-  }, [childStore._hasHydrated, eventStore._hasHydrated, apptStore._hasHydrated, consStore._hasHydrated, childStore.children.length, isReady]);
-
-  if (!isReady) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Carregando...</Text>
-      </View>
-    );
-  }
+  if (!hydrated || (!fontsLoaded && !fontError)) return <BrandLoader />;
 
   return <>{children}</>;
 }
