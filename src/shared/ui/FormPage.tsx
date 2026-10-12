@@ -16,10 +16,9 @@ export type FormPageProps = {
   onBack: () => void;
   children: ReactNode;
   footer?: ReactNode;
-  overlay?: ReactNode;
 };
 
-export function FormPage({ eyebrow, title, onBack, children, footer, overlay }: FormPageProps) {
+export function FormPage({ eyebrow, title, onBack, children, footer }: FormPageProps) {
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       <Grain />
@@ -48,7 +47,6 @@ export function FormPage({ eyebrow, title, onBack, children, footer, overlay }: 
 
         {footer ? <View style={styles.footer}>{footer}</View> : null}
       </KeyboardAvoidingView>
-      {overlay}
     </SafeAreaView>
   );
 }

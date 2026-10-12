@@ -53,6 +53,7 @@ export { TeaBagIcon } from 'phosphor-react-native/src/icons/TeaBag';
 export { ThumbsUpIcon } from 'phosphor-react-native/src/icons/ThumbsUp';
 export { ToiletIcon } from 'phosphor-react-native/src/icons/Toilet';
 export { ToiletPaperIcon } from 'phosphor-react-native/src/icons/ToiletPaper';
+export { TrashIcon } from 'phosphor-react-native/src/icons/Trash';
 export { TreeIcon } from 'phosphor-react-native/src/icons/Tree';
 export { UserIcon } from 'phosphor-react-native/src/icons/User';
 export { UserPlusIcon } from 'phosphor-react-native/src/icons/UserPlus';

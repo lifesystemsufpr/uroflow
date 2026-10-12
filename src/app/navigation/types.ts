@@ -1,6 +1,5 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { EventFilter, EventType } from '@/features/diary/types';
-import type { AppointmentDraft } from '@/features/consultations/types';
 
 export type TabParamList = {
   Home: undefined;
@@ -10,10 +9,9 @@ export type TabParamList = {
 };
 
 export type RootStackParamList = {
-  Onboarding: { appointment?: AppointmentDraft } | undefined;
+  Onboarding: undefined;
   Tabs: NavigatorScreenParams<TabParamList> | undefined;
   Wizard: { type: EventType };
-  AppointmentForm: { draft?: AppointmentDraft; returnTo?: 'Onboarding' } | undefined;
   AppointmentDetails: { id: string };
   ConsiderationForm: undefined;
   ChildForm: undefined;

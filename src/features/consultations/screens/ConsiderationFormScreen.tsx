@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Alert, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Button, FormPage, Input, SuccessOverlay } from '@/shared/ui';
+import { Button, FormPage, Input, showSuccess } from '@/shared/ui';
 import { useActiveChildId } from '@/features/child/hooks/useActiveChild';
 import { useConsiderationStore } from '../store/considerationStore';
 
@@ -11,7 +11,6 @@ export function ConsiderationFormScreen() {
   const addConsideration = useConsiderationStore((s) => s.addConsideration);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [success, setSuccess] = useState(false);
 
   const save = () => {
     if (!childId) {
@@ -23,7 +22,7 @@ export function ConsiderationFormScreen() {
       return;
     }
     addConsideration({ childId, title: title.trim(), description: description.trim() });
-    setSuccess(true);
+    showSuccess({ onCovered: () => navigation.goBack() });
   };
 
   return (
@@ -32,15 +31,6 @@ export function ConsiderationFormScreen() {
       title="Lembrar de falar sobre..."
       onBack={() => navigation.goBack()}
       footer={<Button label="Salvar consideração" onPress={save} style={styles.grow} />}
-      overlay={
-        <SuccessOverlay
-          visible={success}
-          onAnimationEnd={() => {
-            setSuccess(false);
-            navigation.goBack();
-          }}
-        />
-      }
     >
       <Input label="Assunto (curto)" placeholder="Ex: Escape durante a noite" value={title} onChangeText={setTitle} autoFocus />
       <Input

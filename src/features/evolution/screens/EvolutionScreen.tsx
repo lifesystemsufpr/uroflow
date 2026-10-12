@@ -94,7 +94,7 @@ export function EvolutionScreen() {
       <Animated.View entering={reveal(80)} style={styles.highlights}>
         <Highlight
           label="Xixis / dia"
-          value={average(weekSample.pee).toFixed(1).replace('.', ',')}
+          value={String(Math.round(average(weekSample.pee)))}
           icon={eventCatalog.pee.icon}
           tone={tones.marigold}
         />

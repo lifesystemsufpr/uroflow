@@ -4,8 +4,11 @@ import {
   FadeInDown,
   FadeInLeft,
   FadeInRight,
+  FadeOut,
   FadeOutUp,
   LinearTransition,
+  ZoomIn,
+  ZoomOut,
 } from 'react-native-reanimated';
 
 export const easings = {
@@ -35,6 +38,12 @@ export const tickIn = FadeInDown.duration(durations.base)
   .withInitialValues({ opacity: 0, transform: [{ translateY: 16 }] });
 
 export const tickOut = FadeOutUp.duration(durations.fast);
+
+export const fadeOut = FadeOut.duration(durations.base).easing(easings.out);
+
+export const popIn = ZoomIn.duration(durations.base).easing(easings.emphasized);
+
+export const popOut = ZoomOut.duration(durations.fast);
 
 export const slideStep = (direction: 1 | -1) =>
   (direction === 1 ? FadeInRight : FadeInLeft)

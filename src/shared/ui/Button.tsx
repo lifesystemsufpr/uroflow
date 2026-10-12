@@ -6,7 +6,7 @@ import { durations } from '@/shared/motion';
 import { Glyph } from './Glyph';
 import { Text } from './Text';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'dashed';
+export type ButtonVariant = 'primary' | 'secondary' | 'dashed' | 'danger';
 
 export type ButtonProps = {
   label: string;
@@ -25,6 +25,7 @@ const looks: Record<ButtonVariant, Look> = {
   primary: { face: colors.primary, text: colors.onPrimary, border: colors.primary, shelf: colors.primaryDark },
   secondary: { face: colors.surface, text: colors.primary, border: colors.line, shelf: null },
   dashed: { face: 'transparent', text: colors.primary, border: colors.textFaint, shelf: null },
+  danger: { face: colors.danger, text: colors.onPrimary, border: colors.danger, shelf: colors.dangerDark },
 };
 
 const disabledLook: Look = { face: colors.surfaceMuted, text: colors.textFaint, border: colors.surfaceMuted, shelf: null };

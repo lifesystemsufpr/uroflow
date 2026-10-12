@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { ChartLineUpIcon, HouseLineIcon, NotebookIcon, StethoscopeIcon, type Icon } from '@/shared/icons';
 import { Glyph, TAB_BAR_HEIGHT, Text, useTabBarBottom } from '@/shared/ui';
 import { colors, radius, shadow, space } from '@/shared/theme';
 import { tabSpring } from '@/shared/motion';
+import type { SwipeTabBarProps } from './swipeTabs';
 import type { TabParamList } from './types';
 
 const icons: Record<keyof TabParamList, Icon> = {
@@ -58,15 +58,10 @@ function TabItem({ icon, label, focused, onPress, onLongPress }: {
   );
 }
 
-export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+export function TabBar({ state, descriptors, navigation, position }: SwipeTabBarProps) {
   const bottom = useTabBarBottom();
   const [width, setWidth] = useState(0);
   const itemWidth = width / state.routes.length;
-  const position = useSharedValue(state.index);
-
-  useEffect(() => {
-    position.value = withSpring(state.index, tabSpring);
-  }, [state.index, position]);
 
   const indicatorStyle = useAnimatedStyle(() => ({
     width: Math.max(itemWidth - INSET * 2, 0),

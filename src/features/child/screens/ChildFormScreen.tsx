@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Alert, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Button, DateField, FormPage, Input, SuccessOverlay } from '@/shared/ui';
+import { Button, DateField, FormPage, Input, showSuccess } from '@/shared/ui';
 import { brDateToIso, isValidDateString } from '@/shared/lib/formatters';
 import { useAppointmentStore } from '@/features/consultations/store/appointmentStore';
 import { useChildStore } from '../store/childStore';
@@ -22,7 +22,6 @@ export function ChildFormScreen() {
   const [birthDate, setBirthDate] = useState('');
   const [goal, setGoal] = useState('');
   const [nextAppointment, setNextAppointment] = useState('');
-  const [success, setSuccess] = useState(false);
 
   const save = () => {
     const error = validate(name, birthDate, nextAppointment);
@@ -42,7 +41,7 @@ export function ChildFormScreen() {
         notes: 'Agendado no cadastro',
       });
     }
-    setSuccess(true);
+    showSuccess({ onCovered: () => navigation.goBack() });
   };
 
   return (
@@ -51,15 +50,6 @@ export function ChildFormScreen() {
       title="Cadastrar nova criança"
       onBack={() => navigation.goBack()}
       footer={<Button label="Cadastrar" onPress={save} style={styles.grow} />}
-      overlay={
-        <SuccessOverlay
-          visible={success}
-          onAnimationEnd={() => {
-            setSuccess(false);
-            navigation.goBack();
-          }}
-        />
-      }
     >
       <Input label="Nome ou apelido *" placeholder="Ex: Ana, Pedrinho..." value={name} onChangeText={setName} autoFocus />
       <DateField label="Data de nascimento" value={birthDate} onChange={setBirthDate} untilToday />

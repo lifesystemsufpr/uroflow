@@ -1,20 +1,34 @@
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { ChatCircleTextIcon, PlusIcon } from '@/shared/icons';
-import { Button, Checkbox, DashedDivider, Glyph, Text, Touchable } from '@/shared/ui';
+import { ChatCircleTextIcon, PlusIcon, TrashIcon } from '@/shared/icons';
+import { Button, Checkbox, DashedDivider, Dialog, Glyph, Text, Touchable } from '@/shared/ui';
 import { colors, radius, space } from '@/shared/theme';
-import { layout } from '@/shared/motion';
+import { fadeOut, layout, popIn, popOut } from '@/shared/motion';
 import type { Consideration } from '../types';
 
 export type ConsiderationListProps = {
   title: string;
   items: Consideration[];
   onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
   onAdd: () => void;
 };
 
-export function ConsiderationList({ title, items, onToggle, onAdd }: ConsiderationListProps) {
+export function ConsiderationList({ title, items, onToggle, onDelete, onAdd }: ConsiderationListProps) {
   const done = items.filter((item) => item.completed).length;
+  const [target, setTarget] = useState<Consideration | null>(null);
+  const [confirming, setConfirming] = useState(false);
+
+  const askDelete = (item: Consideration) => {
+    setTarget(item);
+    setConfirming(true);
+  };
+
+  const confirmDelete = () => {
+    if (target) onDelete(target.id);
+    setConfirming(false);
+  };
 
   return (
     <Animated.View layout={layout} style={styles.card}>
@@ -35,24 +49,38 @@ export function ConsiderationList({ title, items, onToggle, onAdd }: Considerati
       {items.length > 0 ? (
         <View style={styles.list}>
           {items.map((item, index) => (
-            <View key={item.id}>
+            <Animated.View key={item.id} layout={layout} exiting={fadeOut}>
               {index > 0 ? <DashedDivider /> : null}
-              <Touchable
-                onPress={() => onToggle(item.id)}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: item.completed }}
-                style={styles.item}
-              >
-                <Checkbox checked={item.completed} />
-                <Text
-                  variant="bodyStrong"
-                  color={item.completed ? colors.textFaint : colors.primary}
-                  style={[styles.flex, item.completed && styles.completed]}
+              <View style={styles.row}>
+                <Touchable
+                  onPress={() => onToggle(item.id)}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: item.completed }}
+                  style={styles.item}
                 >
-                  {item.title}
-                </Text>
-              </Touchable>
-            </View>
+                  <Checkbox checked={item.completed} />
+                  <Text
+                    variant="bodyStrong"
+                    color={item.completed ? colors.textFaint : colors.primary}
+                    style={[styles.flex, item.completed && styles.completed]}
+                  >
+                    {item.title}
+                  </Text>
+                </Touchable>
+                {item.completed ? (
+                  <Animated.View entering={popIn} exiting={popOut}>
+                    <Touchable
+                      onPress={() => askDelete(item)}
+                      accessibilityLabel={`Excluir ${item.title}`}
+                      hitSlop={8}
+                      style={styles.delete}
+                    >
+                      <Glyph icon={TrashIcon} size={16} color={colors.dangerDark} weight="bold" />
+                    </Touchable>
+                  </Animated.View>
+                ) : null}
+              </View>
+            </Animated.View>
           ))}
         </View>
       ) : (
@@ -62,6 +90,26 @@ export function ConsiderationList({ title, items, onToggle, onAdd }: Considerati
       )}
 
       <Button label="Adicionar consideração" icon={PlusIcon} variant="dashed" onPress={onAdd} compact />
+
+      <Dialog
+        visible={confirming}
+        onClose={() => setConfirming(false)}
+        eyebrow="Considerações"
+        title="Excluir este tópico?"
+        footer={
+          <>
+            <Button label="Cancelar" variant="secondary" onPress={() => setConfirming(false)} style={styles.flex} />
+            <Button label="Excluir" variant="danger" icon={TrashIcon} onPress={confirmDelete} style={styles.flex} />
+          </>
+        }
+      >
+        <View style={styles.quote}>
+          <Text variant="bodyStrong" color={colors.primary}>
+            {target?.title}
+          </Text>
+        </View>
+        <Text variant="body">Ele será removido da lista e essa ação não pode ser desfeita.</Text>
+      </Dialog>
     </Animated.View>
   );
 }
@@ -94,11 +142,33 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     paddingHorizontal: space.md,
   },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.xs,
+  },
   item: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: space.sm,
     paddingVertical: 14,
+  },
+  delete: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.dangerMist,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quote: {
+    paddingVertical: space.sm,
+    paddingHorizontal: space.md,
+    borderRadius: radius.md,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.danger,
+    backgroundColor: colors.background,
   },
   completed: {
     textDecorationLine: 'line-through',

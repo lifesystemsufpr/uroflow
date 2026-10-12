@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Modal, StyleSheet, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedProps,
@@ -11,28 +11,65 @@ import Animated, {
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import Svg, { Path } from 'react-native-svg';
+import { create } from 'zustand';
 import { colors, palette, space } from '@/shared/theme';
 import { easings } from '@/shared/motion';
 import { Text } from './Text';
 
-export type SuccessOverlayProps = {
-  visible: boolean;
-  onAnimationEnd?: () => void;
-  message?: string;
+type SuccessRequest = {
+  id: number;
+  message: string;
+  onCovered?: () => void;
 };
+
+type SuccessState = {
+  request: SuccessRequest | null;
+  show: (options?: { message?: string; onCovered?: () => void }) => void;
+  clear: () => void;
+};
+
+const useSuccessStore = create<SuccessState>()((set, get) => ({
+  request: null,
+  show: ({ message = 'Registro salvo!', onCovered } = {}) => {
+    if (get().request) return;
+    set({ request: { id: Date.now(), message, onCovered } });
+  },
+  clear: () => set({ request: null }),
+}));
+
+export const showSuccess = (options?: { message?: string; onCovered?: () => void }) =>
+  useSuccessStore.getState().show(options);
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const CHECK_LENGTH = 48;
-const HOLD = 1300;
+const HOLD = 1000;
+const SETTLE = 320;
 
-export function SuccessOverlay({ visible, onAnimationEnd, message = 'Registro salvo!' }: SuccessOverlayProps) {
+export function SuccessHost() {
+  const request = useSuccessStore((s) => s.request);
+  const clear = useSuccessStore((s) => s.clear);
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.6);
   const draw = useSharedValue(0);
   const ring = useSharedValue(0);
+  const settleTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => () => clearTimeout(settleTimer.current), []);
 
   useEffect(() => {
-    if (!visible) return;
+    if (!request) return;
+
+    const reveal = () => {
+      opacity.value = withTiming(0, { duration: 320, easing: easings.out }, (finished) => {
+        if (finished) scheduleOnRN(clear);
+      });
+    };
+
+    const cover = () => {
+      request.onCovered?.();
+      settleTimer.current = setTimeout(() => requestAnimationFrame(reveal), SETTLE);
+    };
+
     opacity.value = 0;
     scale.value = 0.6;
     draw.value = 0;
@@ -44,12 +81,12 @@ export function SuccessOverlay({ visible, onAnimationEnd, message = 'Registro sa
       withTiming(1, { duration: 200 }),
       withDelay(
         HOLD,
-        withTiming(0, { duration: 300 }, (finished) => {
-          if (finished && onAnimationEnd) scheduleOnRN(onAnimationEnd);
+        withTiming(1, { duration: 0 }, (finished) => {
+          if (finished) scheduleOnRN(cover);
         }),
       ),
     );
-  }, [visible]);
+  }, [request?.id]);
 
   const containerStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
   const badgeStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
@@ -63,33 +100,36 @@ export function SuccessOverlay({ visible, onAnimationEnd, message = 'Registro sa
   }));
   const checkProps = useAnimatedProps(() => ({ strokeDashoffset: CHECK_LENGTH * (1 - draw.value) }));
 
+  if (!request) return null;
+
   return (
-    <Modal visible={visible} transparent animationType="none" statusBarTranslucent navigationBarTranslucent>
-      <Animated.View style={[styles.overlay, containerStyle]}>
-        <View style={styles.stage}>
-          <Animated.View style={[styles.ring, ringStyle]} />
-          <Animated.View style={[styles.badge, badgeStyle]}>
-            <Svg width={64} height={64} viewBox="0 0 52 52">
-              <AnimatedPath
-                d="M14 27 L23 36 L39 18"
-                stroke={palette.cream}
-                strokeWidth={5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
-                strokeDasharray={CHECK_LENGTH}
-                animatedProps={checkProps}
-              />
-            </Svg>
-          </Animated.View>
-        </View>
-        <Animated.View style={messageStyle}>
-          <Text variant="display" align="center">
-            {message}
-          </Text>
+    <Animated.View
+      accessibilityViewIsModal
+      style={[StyleSheet.absoluteFill, styles.overlay, containerStyle]}
+    >
+      <View style={styles.stage}>
+        <Animated.View style={[styles.ring, ringStyle]} />
+        <Animated.View style={[styles.badge, badgeStyle]}>
+          <Svg width={64} height={64} viewBox="0 0 52 52">
+            <AnimatedPath
+              d="M14 27 L23 36 L39 18"
+              stroke={palette.cream}
+              strokeWidth={5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+              strokeDasharray={CHECK_LENGTH}
+              animatedProps={checkProps}
+            />
+          </Svg>
         </Animated.View>
+      </View>
+      <Animated.View style={messageStyle}>
+        <Text variant="display" align="center">
+          {request.message}
+        </Text>
       </Animated.View>
-    </Modal>
+    </Animated.View>
   );
 }
 
@@ -97,8 +137,8 @@ const BADGE = 120;
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(245, 239, 229, 0.97)',
+    zIndex: 100,
+    backgroundColor: 'rgba(245, 239, 229, 0.98)',
     alignItems: 'center',
     justifyContent: 'center',
     padding: space.xl,

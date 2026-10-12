@@ -1,10 +1,9 @@
-import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, XIcon } from '@/shared/icons';
-import { Button, Glyph, Grain, IconBadge, Input, ProgressTrack, SuccessOverlay, Text, Touchable } from '@/shared/ui';
+import { Button, Glyph, Grain, IconBadge, Input, ProgressTrack, showSuccess, Text, Touchable } from '@/shared/ui';
 import { colors, radius, space } from '@/shared/theme';
 import { reveal, slideStep } from '@/shared/motion';
 import { clockTime, utcDateKey } from '@/shared/lib/date';
@@ -21,14 +20,13 @@ function WizardFlow({ def }: { def: WizardDefinition }) {
   const navigation = useNavigation();
   const childId = useActiveChildId();
   const addEvent = useEventStore((s) => s.addEvent);
-  const [success, setSuccess] = useState(false);
   const meta = eventCatalog[def.type];
 
   const finish = (answers: Answers) => {
     if (!childId) return;
     const now = new Date();
     addEvent({ childId, type: def.type, date: utcDateKey(now), time: clockTime(now), data: answers });
-    setSuccess(true);
+    showSuccess({ onCovered: () => navigation.goBack() });
   };
 
   const { state, step, total, ready, select, type, back, next } = useWizardFlow(def, finish);
@@ -114,13 +112,6 @@ function WizardFlow({ def }: { def: WizardDefinition }) {
         </View>
       </KeyboardAvoidingView>
 
-      <SuccessOverlay
-        visible={success}
-        onAnimationEnd={() => {
-          setSuccess(false);
-          navigation.goBack();
-        }}
-      />
     </SafeAreaView>
   );
 }

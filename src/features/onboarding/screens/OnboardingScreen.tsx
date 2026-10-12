@@ -1,17 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { ArrowLeftIcon, ArrowRightIcon, CalendarPlusIcon, PencilSimpleIcon } from '@/shared/icons';
-import { Button, DateField, Glyph, Grain, Input, ProgressTrack, SuccessOverlay, Text, Touchable } from '@/shared/ui';
+import { Button, DateField, Glyph, Grain, Input, ProgressTrack, showSuccess, Text, Touchable } from '@/shared/ui';
 import { colors, radius, space } from '@/shared/theme';
 import { formatDate } from '@/shared/lib/date';
 import { slideStep } from '@/shared/motion';
 import { useChildStore } from '@/features/child';
 import { useUserStore } from '@/features/user';
-import { useAppointmentStore, useConsiderationStore, type AppointmentDraft } from '@/features/consultations';
-import type { RootStackParamList } from '@/app/navigation/types';
+import { AppointmentSheet, useAppointmentStore, useConsiderationStore, type AppointmentDraft } from '@/features/consultations';
 import { ReviewCard } from '../components/ReviewCard';
 import { StepIntro } from '../components/StepIntro';
 import { WelcomeArt } from '../components/WelcomeArt';
@@ -20,26 +18,23 @@ import { stepError, TOTAL_STEPS, type OnboardingForm } from '../model/validation
 const emptyForm: OnboardingForm = { guardianName: '', childName: '', childDob: '', childGoal: '' };
 
 export function OnboardingScreen() {
-  const navigation = useNavigation();
-  const route = useRoute<RouteProp<RootStackParamList, 'Onboarding'>>();
-  const returned = route.params?.appointment;
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState<1 | -1>(1);
   const [form, setForm] = useState(emptyForm);
   const [appointment, setAppointment] = useState<AppointmentDraft | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [appointmentOpen, setAppointmentOpen] = useState(false);
 
   const setGuardianName = useUserStore((s) => s.setGuardianName);
   const addChild = useChildStore((s) => s.addChild);
   const addAppointment = useAppointmentStore((s) => s.addAppointment);
   const addConsideration = useConsiderationStore((s) => s.addConsideration);
 
-  useEffect(() => {
-    if (returned) setAppointment(returned);
-  }, [returned]);
+  const openAppointmentForm = () => setAppointmentOpen(true);
 
-  const openAppointmentForm = () =>
-    navigation.navigate('AppointmentForm', { draft: appointment ?? undefined, returnTo: 'Onboarding' });
+  const saveAppointment = (draft: AppointmentDraft) => {
+    setAppointment(draft);
+    setAppointmentOpen(false);
+  };
 
   const update = (key: keyof OnboardingForm) => (value: string) => setForm((f) => ({ ...f, [key]: value }));
 
@@ -210,7 +205,7 @@ export function OnboardingScreen() {
                 style={step === TOTAL_STEPS ? styles.backCompact : styles.flex}
               />
               {step === TOTAL_STEPS ? (
-                <Button label="Começar acompanhamento" onPress={() => setSuccess(true)} style={styles.flex} />
+                <Button label="Começar acompanhamento" onPress={() => showSuccess({ onCovered: finalize })} style={styles.flex} />
               ) : (
                 <Button label="Continuar" icon={ArrowRightIcon} iconPosition="end" onPress={goNext} style={styles.flex} />
               )}
@@ -219,12 +214,11 @@ export function OnboardingScreen() {
         </View>
       </KeyboardAvoidingView>
 
-      <SuccessOverlay
-        visible={success}
-        onAnimationEnd={() => {
-          setSuccess(false);
-          finalize();
-        }}
+      <AppointmentSheet
+        visible={appointmentOpen}
+        initial={appointment}
+        onClose={() => setAppointmentOpen(false)}
+        onSubmit={saveAppointment}
       />
     </SafeAreaView>
   );

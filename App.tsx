@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootNavigator } from '@/app/navigation/RootNavigator';
 import { AppProvider } from '@/app/providers/AppProvider';
 import { colors } from '@/shared/theme';
+import { SuccessHost } from '@/shared/ui';
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
         <StatusBar style="dark" />
         <AppProvider>
           <RootNavigator />
+          <SuccessHost />
         </AppProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

@@ -30,6 +30,7 @@ export function AppointmentDetailsScreen() {
   const appointment = useAppointmentStore((s) => s.appointments.find((a) => a.id === params.id));
   const considerations = useConsiderationStore((s) => s.considerations);
   const toggleComplete = useConsiderationStore((s) => s.toggleComplete);
+  const deleteConsideration = useConsiderationStore((s) => s.deleteConsideration);
   const childId = appointment?.childId;
   const items = useMemo(() => considerations.filter((c) => c.childId === childId), [considerations, childId]);
 
@@ -65,6 +66,7 @@ export function AppointmentDetailsScreen() {
             title="Considerações para discutir"
             items={items}
             onToggle={toggleComplete}
+            onDelete={deleteConsideration}
             onAdd={() => navigation.navigate('ConsiderationForm')}
           />
         </>
